@@ -399,7 +399,6 @@ class SpaceInvaders(object):
                 self.all_bots[i].set_inputs([0.0]*self.total_inputs)
             self.best_index = 0
             self.top_score = -200
-        self.space_bot = self.all_bots[self.round]
         self.player = Ship()
         self.playerGroup = sprite.Group(self.player)
         self.explosionsGroup = sprite.Group()
@@ -411,7 +410,6 @@ class SpaceInvaders(object):
         self.allSprites = sprite.Group(self.player, self.enemies,
                                        self.livesGroup, self.mysteryShip)
         self.keys = key.get_pressed()
-
         self.timer = time.get_ticks()
         self.noteTimer = time.get_ticks()
         self.shipTimer = time.get_ticks()
@@ -420,6 +418,10 @@ class SpaceInvaders(object):
         self.makeNewShip = False
         self.shipAlive = True
         self.gameTimer = time.get_ticks()
+##Death Penalty is the amount subtracted from the score when the bot gets shot
+        self.deathPenalty = 0
+        self.space_bot = self.all_bots[self.round]
+
     def make_blockers(self, number):
         blockerGroup = sprite.Group()
         for row in range(4):
@@ -568,6 +570,7 @@ class SpaceInvaders(object):
             else:
                 self.gameOver = True
                 self.startGame = False
+            self.score -= self.deathPenalty
            # self.sounds['shipexplosion'].play()
             ShipExplosion(player, self.explosionsGroup)
             self.makeNewShip = True
@@ -667,10 +670,14 @@ class SpaceInvaders(object):
                     self.scoreText.draw(self.screen)
                     self.scoreText2.draw(self.screen)
                     self.livesText.draw(self.screen)
+## BulletLevel is the number of bullets above the player
                     bulletLevel = 0
                     for bullet in self.bullets:
                         if bullet.rect.x-self.player.rect.x < 100 and bullet.rect.x-self.player.rect.x > -100:
                             bulletLevel += 1
+## Where Choose_Move() is called on the bot and the inputs are set
+## This is where input variable algorithms can be changed
+## Currently its {playerX, bulletLevel, num of enemies in Column1, num of enemies in Column2, ...}
                     self.space_bot.choose_move([(350-self.player.rect.x)/100,bulletLevel/5,self.enemies.get_column_total(0)/5, self.enemies.get_column_total(1)/5, self.enemies.get_column_total(2)/5, self.enemies.get_column_total(3)/5, self.enemies.get_column_total(4)/5, self.enemies.get_column_total(5)/5, self.enemies.get_column_total(6)/5, self.enemies.get_column_total(7)/5, self.enemies.get_column_total(8)/5, self.enemies.get_column_total(9)/5])
                     self.check_input()
                     self.enemies.update(currentTime)
