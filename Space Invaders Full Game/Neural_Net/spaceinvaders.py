@@ -7,6 +7,7 @@ from pygame import *
 import sys
 from os.path import abspath, dirname
 from random import choice
+import observer
 
 BASE_PATH = abspath(dirname(__file__))
 FONT_PATH = BASE_PATH + '/fonts/'
@@ -353,11 +354,11 @@ class SpaceInvaders(object):
         self.enemy4Text = Text(FONT, 25, '   =  ?????', RED, 368, 420)
         self.scoreText = Text(FONT, 20, 'Score', WHITE, 5, 5)
         self.livesText = Text(FONT, 20, 'Lives ', WHITE, 640, 5)
-
         self.life1 = Life(715, 3)
         self.life2 = Life(742, 3)
         self.life3 = Life(769, 3)
         self.livesGroup = sprite.Group(self.life1, self.life2, self.life3)
+        self.observer = observer.observer(self)
 
     def reset(self, score):
         self.player = Ship()
@@ -629,6 +630,7 @@ class SpaceInvaders(object):
                     self.check_collisions()
                     self.create_new_ship(self.makeNewShip, currentTime)
                     self.make_enemies_shoot()
+                    self.observer.update(self.player.rect.x, self.enemies, self.bullets)
 
             elif self.gameOver:
                 currentTime = time.get_ticks()
