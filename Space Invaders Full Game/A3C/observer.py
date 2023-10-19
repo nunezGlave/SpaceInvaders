@@ -4,7 +4,7 @@ import spaceinvaders
 class observer:
     # SpaceInvaders Game will init this class at the start of game
     # Init AI class here
-    def __init__(self, gama_subject):
+    def __init__(self, game_subject):
         # Subject is a reference to the SpaceInvaders Game class
         self.game_subject = game_subject
         # X position of the player
