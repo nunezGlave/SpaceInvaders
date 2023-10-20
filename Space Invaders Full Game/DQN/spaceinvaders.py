@@ -444,7 +444,7 @@ class SpaceInvaders(object):
             self.command_left = False
         if self.command_right:
             if self.player.rect.x < 740:
-                self.rect.x += self.player.speed
+                self.player.rect.x += self.player.speed
             self.command_right = False
         if self.command_shoot:
             if len(self.bullets) == 0 and self.shipAlive:
