@@ -27,3 +27,12 @@ class DQN:
     def update(self, player_x, enemies, bullets):
         pass
 
+class A3C:
+    def __init__(self, game_instance):
+        self.game_instance = game_instance
+
+    def send_command(self, command):
+        self.game_instance.command(command)
+
+    def update(self, player_x, enemies, bullets):
+        pass

@@ -5,6 +5,9 @@ import players
 import sys
 
 ATTACH_HUMAN = "--attach-human" in sys.argv
+ATTACH_AI1 = "--attach-a3c" in sys.argv
+ATTACH_AI2 = "--attach-nqc" in sys.argv
+
 BASE_PATH = abspath(dirname(__file__))
 FONT_PATH = BASE_PATH + '/fonts/'
 IMAGE_PATH = BASE_PATH + '/images/'
