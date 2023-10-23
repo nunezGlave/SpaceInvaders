@@ -430,7 +430,6 @@ class SpaceInvaders(object):
         return evt.type == QUIT or (evt.type == KEYUP and evt.key == K_ESCAPE)
 
     def check_input(self):
-        self.keys = key.get_pressed()
         for e in event.get():
             if self.should_exit(e):
                 sys.exit()
@@ -645,6 +644,7 @@ class SpaceInvaders(object):
                     self.check_collisions()
                     self.create_new_ship(self.makeNewShip, currentTime)
                     self.make_enemies_shoot()
+########
                     self.observer.update(self.player.rect.x, self.enemies, self.bullets)
 
             elif self.gameOver:
