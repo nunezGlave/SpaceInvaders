@@ -7,7 +7,7 @@ from pygame import *
 
 if __name__ == '__main__':
     # Variables to control the game
-    optionMenu = 1
+    optionMenu = 3
     gameControl = True
 
     # Start the video game
@@ -35,6 +35,12 @@ if __name__ == '__main__':
             leftBottom = SpaceInvaders(scaleImage, 0, screen, screen.halfWidth, screen.halfHeight, 0, screen.halfHeight)
             rightTop = SpaceInvaders(scaleImage, 1, screen, screen.halfWidth, screen.halfHeight, screen.halfWidth)
             rightBottom = SpaceInvaders(scaleImage, 1, screen, screen.halfWidth, screen.halfHeight, screen.halfWidth, screen.halfHeight)
+        case 4:
+            leftTop = SpaceInvaders(scaleImage, 2, screen, screen.halfWidth, screen.halfHeight)
+            leftBottom = SpaceInvaders(scaleImage, 2, screen, screen.halfWidth, screen.halfHeight, 0, screen.halfHeight)
+            rightTop = SpaceInvaders(scaleImage, 2, screen, screen.halfWidth, screen.halfHeight, screen.halfWidth)
+            rightBottom = SpaceInvaders(scaleImage, 2, screen, screen.halfWidth, screen.halfHeight, screen.halfWidth,
+                                screen.halfHeight)
         case _:
             gameControl = False
             print("Incorrect Menu Option")
