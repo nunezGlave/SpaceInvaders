@@ -1,5 +1,6 @@
 ''' Created by Clark '''
 from Logical_Layer.Interfaces.observer import Observer
+from Logical_Layer.A3C import Space_bot
 
 class A3C_Observer(Observer):
     def __init__(self, game_instance):
@@ -8,26 +9,31 @@ class A3C_Observer(Observer):
         self.enemies_per_column = [0] * 11
         self.bullet_x = []
         self.average_enemy_x = 0
+        self.Space_bot = Space_bot.space_bot(3,3,self)
+        self.Space_bot.set_inputs([0.0] * 3)
+        self.Space_bot.set_layers()
 
-    def update(self, player_x, enemies, bullets):
-        self.player_x = player_x
+    def update(self):
+        self.player_x = self.game_instance.player.rect.x
         self.enemies_per_column = [0] * 11
         self.bullet_x = []
-        for enemy in enemies:
-            self.enemies_per_column[int(enemy.x / 10)] += 1
-            self.average_enemy_x += enemy.x
-        self.average_enemy_x /= len(enemies)
-        for bullet in bullets:
-            self.bullet_x.append(bullet.x)
-        self.print_update()
+        for enemy in self.game_instance.enemies:
+            self.enemies_per_column[enemy.column] += 1
+            self.average_enemy_x += enemy.rect.x
+        if len(self.game_instance.enemies) > 0:
+            self.average_enemy_x /= len(self.game_instance.enemies)
+        for bullet in self.game_instance.bullets:
+            self.bullet_x.append(bullet.rect.x)
+        self.Space_bot.choose_move([self.get_player_screen_position(), self.get_bullets_above_player(), self.average_enemy_x / self.game_instance.screen.get_width()])
+       # self.print_update()
 
     def get_player_screen_position(self):
-        return self.player_x / self.game_subject.SCREEN_WIDTH
+        return self.player_x / self.game_instance.screen.get_width()
 
     def get_bullets_above_player(self):
         bullet_count = 0
         for bullet_x in self.bullet_x:
-            if bullet_x > self.player_x - 50 and bullet_x < self.player_x + 50:
+            if self.player_x - 50 < bullet_x < self.player_x + 50:
                 bullet_count += 1
         return bullet_count
 

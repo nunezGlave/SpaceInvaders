@@ -43,10 +43,13 @@ IMG_NAMES = ['ship', 'mystery',
 
 class SpaceInvaders():
     # Parameterized Constructor
+    instance_count = 0
     def __init__(self, scale: int, controlGame: int, gameWindow: Screen, width : float, height: float, leftPos: int = 0, topPos : int = 0):
         # Background sound
+        SpaceInvaders.instance_count += 1
         mixer.pre_init(44100, -16, 1, 4096)
-        mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play()
+        if(SpaceInvaders.instance_count == 1):
+            mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play()
 
         # Select the screen dimension and set with a background image
         self.subWindow = gameWindow.surface.subsurface(Rect(leftPos, topPos, width, height))
@@ -209,7 +212,8 @@ class SpaceInvaders():
 
     @staticmethod
     def should_exit(evt):
-        return evt.type == QUIT or (evt.type == KEYUP and evt.key == K_ESCAPE)         # type: (pygame.event.EventType) -> bool
+        # type: (pygame.event.EventType) -> bool
+        return evt.type == QUIT or (evt.type == KEYUP and evt.key == K_ESCAPE)
 
     def check_input(self):
         self.keys = key.get_pressed()
