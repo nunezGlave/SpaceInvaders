@@ -7,7 +7,7 @@ from pygame import *
 
 if __name__ == '__main__':
     # Variables to control the game
-    optionMenu = 4
+    optionMenu = 3
     gameControl = True
 
     # Start the video game
@@ -36,10 +36,10 @@ if __name__ == '__main__':
             rightTop = SpaceInvaders(scaleImage, 1, screen, screen.halfWidth, screen.halfHeight, screen.halfWidth)
             rightBottom = SpaceInvaders(scaleImage, 1, screen, screen.halfWidth, screen.halfHeight, screen.halfWidth, screen.halfHeight)
         case 4:
-            leftTop = SpaceInvaders(3, 2, screen, screen.halfWidth, screen.halfHeight)
-            leftBottom = SpaceInvaders(3, 2, screen, screen.halfWidth, screen.halfHeight, 0, screen.halfHeight)
-            rightTop = SpaceInvaders(3, 2, screen, screen.halfWidth, screen.halfHeight, screen.halfWidth)
-            rightBottom = SpaceInvaders(3, 2, screen, screen.halfWidth, screen.halfHeight, screen.halfWidth,
+            leftTop = SpaceInvaders(scaleImage, 2, screen, screen.halfWidth, screen.halfHeight)
+            leftBottom = SpaceInvaders(scaleImage, 2, screen, screen.halfWidth, screen.halfHeight, 0, screen.halfHeight)
+            rightTop = SpaceInvaders(scaleImage, 2, screen, screen.halfWidth, screen.halfHeight, screen.halfWidth)
+            rightBottom = SpaceInvaders(scaleImage, 2, screen, screen.halfWidth, screen.halfHeight, screen.halfWidth,
                                 screen.halfHeight)
         case _:
             gameControl = False
@@ -54,11 +54,6 @@ if __name__ == '__main__':
                 leftScreen.main()
                 rightScreen.main()
             case 3:
-                leftTop.main()
-                leftBottom.main()
-                rightTop.main()
-                rightBottom.main()
-            case 4:
                 leftTop.main()
                 leftBottom.main()
                 rightTop.main()
