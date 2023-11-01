@@ -4,15 +4,20 @@
 # Created by Lee Robinson
 
 from pygame import *
-import sys
+import sys, os
 from os.path import abspath, dirname
 from random import choice
+<<<<<<<< HEAD:Models/A3C/spaceinvaders.py
+sys.path.append(os.getcwd() + '/Models/')
+import observer
+========
 import players
+>>>>>>>> main:A3C/spaceinvaders.py
 
-BASE_PATH = abspath(dirname(__file__))
-FONT_PATH = BASE_PATH + '/fonts/'
-IMAGE_PATH = BASE_PATH + '/images/'
-SOUND_PATH = BASE_PATH + '/sounds/'
+FULL_PATH = os.getcwd()
+FONT_PATH = FULL_PATH + '/Resources/Fonts/'
+IMAGE_PATH = FULL_PATH + '/Resources/Images/Doom/'
+SOUND_PATH = FULL_PATH + '/Resources/Sounds/Doom/'
 
 # Colors (R, G, B)
 WHITE = (255, 255, 255)
@@ -28,8 +33,8 @@ IMG_NAMES = ['ship', 'mystery',
              'enemy1_1', 'enemy1_2',
              'enemy2_1', 'enemy2_2',
              'enemy3_1', 'enemy3_2',
-             'explosionblue', 'explosiongreen', 'explosionpurple',
-             'laser', 'enemylaser', 'ship2']
+             'explosion_blue', 'explosion_green', 'explosion_purple',
+             'laser', 'enemy_laser', 'life']
 IMAGES = {name: image.load(IMAGE_PATH + '{}.png'.format(name)).convert_alpha()
           for name in IMG_NAMES}
 
@@ -264,7 +269,7 @@ class EnemyExplosion(sprite.Sprite):
     @staticmethod
     def get_image(row):
         img_colors = ['purple', 'blue', 'blue', 'green', 'green']
-        return IMAGES['explosion{}'.format(img_colors[row])]
+        return IMAGES['explosion_{}'.format(img_colors[row])]
 
     def update(self, current_time, *args):
         passed = current_time - self.timer
@@ -309,7 +314,7 @@ class ShipExplosion(sprite.Sprite):
 class Life(sprite.Sprite):
     def __init__(self, xpos, ypos):
         sprite.Sprite.__init__(self)
-        self.image = IMAGES['ship2']
+        self.image = IMAGES['life']
         self.image = transform.scale(self.image, (23, 23))
         self.rect = self.image.get_rect(topleft=(xpos, ypos))
 
@@ -333,7 +338,7 @@ class SpaceInvaders(object):
         #   ALSA lib pcm.c:7963:(snd_pcm_recover) underrun occurred
         mixer.pre_init(44100, -16, 1, 4096)
         init()
-        mixer.Sound('sounds\d_e1m1.wav').play()
+        mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play()
         self.clock = time.Clock()
         self.caption = display.set_caption('Space Invaders')
         self.screen = SCREEN
@@ -358,7 +363,11 @@ class SpaceInvaders(object):
         self.life2 = Life(742, 3)
         self.life3 = Life(769, 3)
         self.livesGroup = sprite.Group(self.life1, self.life2, self.life3)
+<<<<<<<< HEAD:Models/A3C/spaceinvaders.py
+        self.observer = observer.A3C_observer(self)
+========
         self.observer = players.DQN_observer(self)
+>>>>>>>> main:A3C/spaceinvaders.py
         self.command_left = False
         self.command_right = False
         self.command_shoot = False
@@ -430,7 +439,6 @@ class SpaceInvaders(object):
 
     @staticmethod
     def should_exit(evt):
-        # type: (pygame.event.EventType) -> bool
         return evt.type == QUIT or (evt.type == KEYUP and evt.key == K_ESCAPE)
 
     def check_input(self):
@@ -483,7 +491,7 @@ class SpaceInvaders(object):
             enemy = self.enemies.random_bottom()
             self.enemyBullets.add(
                 Bullet(enemy.rect.x + 14, enemy.rect.y + 20, 1, 5,
-                       'enemylaser', 'center'))
+                       'enemy_laser', 'center'))
             self.allSprites.add(self.enemyBullets)
             self.timer = time.get_ticks()
 

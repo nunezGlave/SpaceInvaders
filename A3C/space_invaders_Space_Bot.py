@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import np
 import numpy
 # Space Invaders
 # Created by Lee Robinson
@@ -460,7 +459,6 @@ class SpaceInvaders(object):
 
     @staticmethod
     def should_exit(evt):
-        # type: (pygame.event.EventType) -> bool
         return evt.type == QUIT or (evt.type == KEYUP and evt.key == K_ESCAPE)
 
     def check_input(self):

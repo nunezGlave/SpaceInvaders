@@ -1,3 +1,16 @@
+<<<<<<<< HEAD:Models/DQN/spaceinvaders.py
+#!/usr/bin/env python
+
+# Space Invaders
+# Created by Lee Robinson
+
+from pygame import *
+import sys, os
+from os.path import abspath, dirname
+from random import choice
+sys.path.append(os.getcwd() + '/Models/')
+import observer
+========
 from os.path import abspath, dirname
 from random import choice
 from pygame import *
@@ -7,11 +20,12 @@ import sys
 ATTACH_HUMAN = "--attach-human" in sys.argv
 ATTACH_AI1 = "--attach-a3c" in sys.argv
 ATTACH_AI2 = "--attach-nqc" in sys.argv
+>>>>>>>> main:SpaceInvaders.py
 
-BASE_PATH = abspath(dirname(__file__))
-FONT_PATH = BASE_PATH + '/fonts/'
-IMAGE_PATH = BASE_PATH + '/images/'
-SOUND_PATH = BASE_PATH + '/sounds/'
+FULL_PATH = os.getcwd()
+FONT_PATH = FULL_PATH + '/Resources/Fonts/'
+IMAGE_PATH = FULL_PATH + '/Resources/Images/Doom/'
+SOUND_PATH = FULL_PATH + '/Resources/Sounds/Doom/'
 
 # Colors (R, G, B)
 WHITE = (255, 255, 255)
@@ -23,6 +37,14 @@ RED = (237, 28, 36)
 
 SCREEN = display.set_mode((800, 600))
 FONT = FONT_PATH + 'space_invaders.ttf'
+<<<<<<<< HEAD:Models/DQN/spaceinvaders.py
+IMG_NAMES = ['ship', 'mystery',
+             'enemy1_1', 'enemy1_2',
+             'enemy2_1', 'enemy2_2',
+             'enemy3_1', 'enemy3_2',
+             'explosion_blue', 'explosion_green', 'explosion_purple',
+             'laser', 'enemy_laser', 'life']
+========
 IMG_NAMES = [
     'ship', 'mystery',
     'enemy1_1', 'enemy1_2',
@@ -30,6 +52,7 @@ IMG_NAMES = [
     'enemy3_1', 'enemy3_2',
     'explosionblue', 'explosiongreen', 'explosionpurple',
     'laser', 'enemylaser', 'ship2']
+>>>>>>>> main:SpaceInvaders.py
 IMAGES = {name: image.load(IMAGE_PATH + '{}.png'.format(name)).convert_alpha()
           for name in IMG_NAMES}
 
@@ -260,7 +283,7 @@ class EnemyExplosion(sprite.Sprite):
     @staticmethod
     def get_image(row):
         img_colors = ['purple', 'blue', 'blue', 'green', 'green']
-        return IMAGES['explosion{}'.format(img_colors[row])]
+        return IMAGES['explosion_{}'.format(img_colors[row])]
 
     def update(self, current_time, *args):
         passed = current_time - self.timer
@@ -305,7 +328,7 @@ class ShipExplosion(sprite.Sprite):
 class Life(sprite.Sprite):
     def __init__(self, xpos, ypos):
         sprite.Sprite.__init__(self)
-        self.image = IMAGES['ship2']
+        self.image = IMAGES['life']
         self.image = transform.scale(self.image, (23, 23))
         self.rect = self.image.get_rect(topleft=(xpos, ypos))
 
@@ -329,7 +352,11 @@ class SpaceInvaders(object):
         #   ALSA lib pcm.c:7963:(snd_pcm_recover) underrun occurred
         mixer.pre_init(44100, -16, 1, 4096)
         init()
+<<<<<<<< HEAD:Models/DQN/spaceinvaders.py
+        mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play()
+========
         mixer.Sound('sounds/d_e1m1.wav').play()
+>>>>>>>> main:SpaceInvaders.py
         self.clock = time.Clock()
         self.caption = display.set_caption('Space Invaders')
         self.screen = SCREEN
@@ -479,7 +506,7 @@ class SpaceInvaders(object):
             enemy = self.enemies.random_bottom()
             self.enemyBullets.add(
                 Bullet(enemy.rect.x + 14, enemy.rect.y + 20, 1, 5,
-                       'enemylaser', 'center'))
+                       'enemy_laser', 'center'))
             self.allSprites.add(self.enemyBullets)
             self.timer = time.get_ticks()
 
