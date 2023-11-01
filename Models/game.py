@@ -1,7 +1,7 @@
 '''
     SPACE INVADERS
     Created by Lee Robinson
-    Modified by Alex and Clarck
+    Modified by Alex and Clark
 '''
 
 # Import libraries

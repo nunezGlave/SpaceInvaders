@@ -1,4 +1,3 @@
-<<<<<<<< HEAD:Models/DQN/spaceinvaders.py
 #!/usr/bin/env python
 
 # Space Invaders
@@ -6,23 +5,12 @@
 
 from pygame import *
 import sys, os
-from os.path import abspath, dirname
 from random import choice
-sys.path.append(os.getcwd() + '/Models/')
-import observer
-========
-from os.path import abspath, dirname
-from random import choice
-from pygame import *
-import players
-import sys
-
-ATTACH_HUMAN = "--attach-human" in sys.argv
-ATTACH_AI1 = "--attach-a3c" in sys.argv
-ATTACH_AI2 = "--attach-nqc" in sys.argv
->>>>>>>> main:SpaceInvaders.py
 
 FULL_PATH = os.getcwd()
+sys.path.append(FULL_PATH + '/Models/')
+import observer
+
 FONT_PATH = FULL_PATH + '/Resources/Fonts/'
 IMAGE_PATH = FULL_PATH + '/Resources/Images/Doom/'
 SOUND_PATH = FULL_PATH + '/Resources/Sounds/Doom/'
@@ -37,22 +25,13 @@ RED = (237, 28, 36)
 
 SCREEN = display.set_mode((800, 600))
 FONT = FONT_PATH + 'space_invaders.ttf'
-<<<<<<<< HEAD:Models/DQN/spaceinvaders.py
 IMG_NAMES = ['ship', 'mystery',
              'enemy1_1', 'enemy1_2',
              'enemy2_1', 'enemy2_2',
              'enemy3_1', 'enemy3_2',
              'explosion_blue', 'explosion_green', 'explosion_purple',
              'laser', 'enemy_laser', 'life']
-========
-IMG_NAMES = [
-    'ship', 'mystery',
-    'enemy1_1', 'enemy1_2',
-    'enemy2_1', 'enemy2_2',
-    'enemy3_1', 'enemy3_2',
-    'explosionblue', 'explosiongreen', 'explosionpurple',
-    'laser', 'enemylaser', 'ship2']
->>>>>>>> main:SpaceInvaders.py
+
 IMAGES = {name: image.load(IMAGE_PATH + '{}.png'.format(name)).convert_alpha()
           for name in IMG_NAMES}
 
@@ -348,15 +327,9 @@ class Text(object):
 
 class SpaceInvaders(object):
     def __init__(self):
-        # It seems, in Linux buffersize=512 is not enough, use 4096 to prevent:
-        #   ALSA lib pcm.c:7963:(snd_pcm_recover) underrun occurred
         mixer.pre_init(44100, -16, 1, 4096)
         init()
-<<<<<<<< HEAD:Models/DQN/spaceinvaders.py
         mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play()
-========
-        mixer.Sound('sounds/d_e1m1.wav').play()
->>>>>>>> main:SpaceInvaders.py
         self.clock = time.Clock()
         self.caption = display.set_caption('Space Invaders')
         self.screen = SCREEN
@@ -381,6 +354,7 @@ class SpaceInvaders(object):
         self.life2 = Life(742, 3)
         self.life3 = Life(769, 3)
         self.livesGroup = sprite.Group(self.life1, self.life2, self.life3)
+        self.observer = observer.DQN_observer(self)
         self.command_left = False
         self.command_right = False
         self.command_shoot = False
@@ -672,11 +646,7 @@ class SpaceInvaders(object):
                     self.check_collisions()
                     self.create_new_ship(self.makeNewShip, currentTime)
                     self.make_enemies_shoot()
-                    if ATTACH_HUMAN:
-                        self.human = players.Human(self)
-                        self.human.update(
-                            self.player.rect.x, self.enemies,
-                            self.bullets)
+
 
             elif self.gameOver:
                 currentTime = time.get_ticks()

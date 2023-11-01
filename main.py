@@ -1,6 +1,7 @@
 '''
     Created by Alexander
 '''
+
 # Import libraries
 from pygame import *
 from Models.game import SpaceInvaders

@@ -7,14 +7,11 @@ from pygame import *
 import sys, os
 from os.path import abspath, dirname
 from random import choice
-<<<<<<<< HEAD:Models/A3C/spaceinvaders.py
-sys.path.append(os.getcwd() + '/Models/')
-import observer
-========
-import players
->>>>>>>> main:A3C/spaceinvaders.py
 
 FULL_PATH = os.getcwd()
+sys.path.append(FULL_PATH + '/Models/')
+import observer
+
 FONT_PATH = FULL_PATH + '/Resources/Fonts/'
 IMAGE_PATH = FULL_PATH + '/Resources/Images/Doom/'
 SOUND_PATH = FULL_PATH + '/Resources/Sounds/Doom/'
@@ -334,8 +331,6 @@ class Text(object):
 
 class SpaceInvaders(object):
     def __init__(self):
-        # It seems, in Linux buffersize=512 is not enough, use 4096 to prevent:
-        #   ALSA lib pcm.c:7963:(snd_pcm_recover) underrun occurred
         mixer.pre_init(44100, -16, 1, 4096)
         init()
         mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play()
@@ -363,11 +358,7 @@ class SpaceInvaders(object):
         self.life2 = Life(742, 3)
         self.life3 = Life(769, 3)
         self.livesGroup = sprite.Group(self.life1, self.life2, self.life3)
-<<<<<<<< HEAD:Models/A3C/spaceinvaders.py
         self.observer = observer.A3C_observer(self)
-========
-        self.observer = players.DQN_observer(self)
->>>>>>>> main:A3C/spaceinvaders.py
         self.command_left = False
         self.command_right = False
         self.command_shoot = False
