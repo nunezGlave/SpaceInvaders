@@ -1,6 +1,6 @@
 import random
 import math
-import observer
+import players
 from pynput.keyboard import Key, Controller
 
 #Neuron class that contains a weight for each neuron in the previous layer and a bias for this neuron
@@ -68,7 +68,7 @@ class NeuronLayer:
 #Space_bot is the class that contains the neural network and the methods to train it
 class Space_bot:
     def __init__(self, layer_count, my_neuron_count, subject):
-        self.observer = observer(subject)
+        self.observer = players(subject)
         self.neuron_count = my_neuron_count
 #The input layer is the layer that listens to in game variables
         self.input_layer = None

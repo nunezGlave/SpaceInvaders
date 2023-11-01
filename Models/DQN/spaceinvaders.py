@@ -1,3 +1,4 @@
+<<<<<<<< HEAD:Models/DQN/spaceinvaders.py
 #!/usr/bin/env python
 
 # Space Invaders
@@ -9,6 +10,17 @@ from os.path import abspath, dirname
 from random import choice
 sys.path.append(os.getcwd() + '/Models/')
 import observer
+========
+from os.path import abspath, dirname
+from random import choice
+from pygame import *
+import players
+import sys
+
+ATTACH_HUMAN = "--attach-human" in sys.argv
+ATTACH_AI1 = "--attach-a3c" in sys.argv
+ATTACH_AI2 = "--attach-nqc" in sys.argv
+>>>>>>>> main:SpaceInvaders.py
 
 FULL_PATH = os.getcwd()
 FONT_PATH = FULL_PATH + '/Resources/Fonts/'
@@ -25,12 +37,22 @@ RED = (237, 28, 36)
 
 SCREEN = display.set_mode((800, 600))
 FONT = FONT_PATH + 'space_invaders.ttf'
+<<<<<<<< HEAD:Models/DQN/spaceinvaders.py
 IMG_NAMES = ['ship', 'mystery',
              'enemy1_1', 'enemy1_2',
              'enemy2_1', 'enemy2_2',
              'enemy3_1', 'enemy3_2',
              'explosion_blue', 'explosion_green', 'explosion_purple',
              'laser', 'enemy_laser', 'life']
+========
+IMG_NAMES = [
+    'ship', 'mystery',
+    'enemy1_1', 'enemy1_2',
+    'enemy2_1', 'enemy2_2',
+    'enemy3_1', 'enemy3_2',
+    'explosionblue', 'explosiongreen', 'explosionpurple',
+    'laser', 'enemylaser', 'ship2']
+>>>>>>>> main:SpaceInvaders.py
 IMAGES = {name: image.load(IMAGE_PATH + '{}.png'.format(name)).convert_alpha()
           for name in IMG_NAMES}
 
@@ -47,10 +69,6 @@ class Ship(sprite.Sprite):
         self.speed = 5
 
     def update(self, keys, *args):
-        if keys[K_LEFT] and self.rect.x > 10:
-            self.rect.x -= self.speed
-        if keys[K_RIGHT] and self.rect.x < 740:
-            self.rect.x += self.speed
         game.screen.blit(self.image, self.rect)
 
 
@@ -334,7 +352,11 @@ class SpaceInvaders(object):
         #   ALSA lib pcm.c:7963:(snd_pcm_recover) underrun occurred
         mixer.pre_init(44100, -16, 1, 4096)
         init()
+<<<<<<<< HEAD:Models/DQN/spaceinvaders.py
         mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play()
+========
+        mixer.Sound('sounds/d_e1m1.wav').play()
+>>>>>>>> main:SpaceInvaders.py
         self.clock = time.Clock()
         self.caption = display.set_caption('Space Invaders')
         self.screen = SCREEN
@@ -359,10 +381,10 @@ class SpaceInvaders(object):
         self.life2 = Life(742, 3)
         self.life3 = Life(769, 3)
         self.livesGroup = sprite.Group(self.life1, self.life2, self.life3)
-        self.observer = observer.DQN_observer(self)
         self.command_left = False
         self.command_right = False
         self.command_shoot = False
+        self.human = None
 
     def command(self, command):
         if command == "left":
@@ -466,6 +488,7 @@ class SpaceInvaders(object):
                     self.bullets.add(rightbullet)
                     self.allSprites.add(self.bullets)
                     self.sounds['shoot2'].play()
+            self.command_shoot = False
 
     def make_enemies(self):
         enemies = EnemiesGroup(10, 5)
@@ -488,13 +511,14 @@ class SpaceInvaders(object):
             self.timer = time.get_ticks()
 
     def calculate_score(self, row):
-        scores = {0: 30,
-                  1: 20,
-                  2: 20,
-                  3: 10,
-                  4: 10,
-                  5: choice([50, 100, 150, 300])
-                  }
+        scores = {
+            0: 30,
+            1: 20,
+            2: 20,
+            3: 10,
+            4: 10,
+            5: choice([50, 100, 150, 300])
+        }
 
         score = scores[row]
         self.score += score
@@ -603,11 +627,11 @@ class SpaceInvaders(object):
                     if self.should_exit(e):
                         sys.exit()
                     if e.type == KEYUP:
-                        # Only create blockers on a new game, not a new round
-                        self.allBlockers = sprite.Group(self.make_blockers(0),
-                                                        self.make_blockers(1),
-                                                        self.make_blockers(2),
-                                                        self.make_blockers(3))
+                        self.allBlockers = sprite.Group(
+                            self.make_blockers(0),
+                            self.make_blockers(1),
+                            self.make_blockers(2),
+                            self.make_blockers(3))
                         self.livesGroup.add(self.life1, self.life2, self.life3)
                         self.reset(0)
                         self.startGame = True
@@ -648,7 +672,11 @@ class SpaceInvaders(object):
                     self.check_collisions()
                     self.create_new_ship(self.makeNewShip, currentTime)
                     self.make_enemies_shoot()
-                    self.observer.update(self.player.rect.x, self.enemies, self.bullets)
+                    if ATTACH_HUMAN:
+                        self.human = players.Human(self)
+                        self.human.update(
+                            self.player.rect.x, self.enemies,
+                            self.bullets)
 
             elif self.gameOver:
                 currentTime = time.get_ticks()

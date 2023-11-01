@@ -7,8 +7,12 @@ from pygame import *
 import sys, os
 from os.path import abspath, dirname
 from random import choice
+<<<<<<<< HEAD:Models/A3C/spaceinvaders.py
 sys.path.append(os.getcwd() + '/Models/')
 import observer
+========
+import players
+>>>>>>>> main:A3C/spaceinvaders.py
 
 FULL_PATH = os.getcwd()
 FONT_PATH = FULL_PATH + '/Resources/Fonts/'
@@ -359,7 +363,11 @@ class SpaceInvaders(object):
         self.life2 = Life(742, 3)
         self.life3 = Life(769, 3)
         self.livesGroup = sprite.Group(self.life1, self.life2, self.life3)
+<<<<<<<< HEAD:Models/A3C/spaceinvaders.py
         self.observer = observer.A3C_observer(self)
+========
+        self.observer = players.DQN_observer(self)
+>>>>>>>> main:A3C/spaceinvaders.py
         self.command_left = False
         self.command_right = False
         self.command_shoot = False
