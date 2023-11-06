@@ -6,10 +6,11 @@
 from pygame import *
 import sys, os
 from random import choice
+from Logical_Layer.Players.dqn_observer import DQN_Observer
 
 FULL_PATH = os.getcwd()
-sys.path.append(FULL_PATH + '/Models/')
-import observer
+sys.path.append(FULL_PATH + '/Logical_Layer/')
+
 
 FONT_PATH = FULL_PATH + '/Resources/Fonts/'
 IMAGE_PATH = FULL_PATH + '/Resources/Images/Doom/'
@@ -354,7 +355,7 @@ class SpaceInvaders(object):
         self.life2 = Life(742, 3)
         self.life3 = Life(769, 3)
         self.livesGroup = sprite.Group(self.life1, self.life2, self.life3)
-        self.observer = observer.DQN_observer(self)
+        self.observer = DQN_Observer(self)
         self.command_left = False
         self.command_right = False
         self.command_shoot = False

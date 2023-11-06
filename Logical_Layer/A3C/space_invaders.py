@@ -9,8 +9,8 @@ from os.path import abspath, dirname
 from random import choice
 
 FULL_PATH = os.getcwd()
-sys.path.append(FULL_PATH + '/Models/')
-import observer
+sys.path.append(FULL_PATH + '/Logical_Layer/')
+from Logical_Layer.Players.a3c_observer import A3C_Observer
 
 FONT_PATH = FULL_PATH + '/Resources/Fonts/'
 IMAGE_PATH = FULL_PATH + '/Resources/Images/Doom/'
@@ -358,7 +358,7 @@ class SpaceInvaders(object):
         self.life2 = Life(742, 3)
         self.life3 = Life(769, 3)
         self.livesGroup = sprite.Group(self.life1, self.life2, self.life3)
-        self.observer = observer.A3C_observer(self)
+        self.observer = A3C_Observer(self)
         self.command_left = False
         self.command_right = False
         self.command_shoot = False
