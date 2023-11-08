@@ -84,15 +84,12 @@ class SpaceInvaders():
         self.ScoreTextW = TextScale.scaleWidth('Lives', FONT, self.titleText.size - 30)
         self.scoreText = Text('Score', FONT, self.titleText.size - 30, Color.WHITE, self.screen.widthP(2), 5)
         self.livesText = Text('Lives ', FONT, self.scoreText.size, Color.WHITE, self.life3.posX - self.ScoreTextW - 10, 3)
-        print(self.ScoreTextW)
-
 
         scaleEnemyPosition = { 1: self.scoreText.textHeight + (self.MISTERY.scaleSize // 2), 2: 140, 3: 58}
         self.ENEMY_MOVE_DOWN = 35
         self.Enemy_DEFAULT_POSITION = scaleEnemyPosition[scale]
         self.BLOCKER_POSITION = int(self.screen.height * scaleBlock[scale])
         self.groupEnemyPosition = self.Enemy_DEFAULT_POSITION
-
 
         # Control of game states and selection of the type of player as well as its mobility
         self.startGame = False
@@ -151,7 +148,9 @@ class SpaceInvaders():
                 currentTime = time.get_ticks()
                 if currentTime - self.gameTimer < 3000:
                     self.subWindow.blit(self.background, (0, 0))
+                    self.scoreNumber = Text(str(self.score), FONT, self.scoreText.size + 2, Color.GREEN, self.scoreText.textWidth + 12, self.scoreText.yPos - 1)
                     self.scoreText.draw(self.subWindow)
+                    self.scoreNumber.draw(self.subWindow)
                     self.nextRoundText.draw(self.subWindow)
                     self.livesText.draw(self.subWindow)
                     self.livesGroup.update()
@@ -165,7 +164,9 @@ class SpaceInvaders():
                 self.play_main_music(currentTime)
                 self.subWindow.blit(self.background, (0, 0))
                 self.allBlockers.update(self.subWindow)
+                self.scoreNumber = Text(str(self.score), FONT, self.scoreText.size + 2, Color.GREEN, self.scoreText.textWidth + 12, self.scoreText.yPos - 1)
                 self.scoreText.draw(self.subWindow)
+                self.scoreNumber.draw(self.subWindow)
                 self.livesText.draw(self.subWindow)
                 self.check_input_player()
                 self.enemies.update(currentTime)
