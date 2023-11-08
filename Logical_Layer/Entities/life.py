@@ -1,8 +1,6 @@
 from pygame import *
 from Logical_Layer.Viewport.image_scale import ImageScale
 from Logical_Layer.Viewport.screen_surface import Screen
-from Logical_Layer.Util.collision import Collision
-from Logical_Layer.Util.color import Color
 
 class Life(sprite.Sprite):
     # Parameterized Constructor
@@ -16,6 +14,4 @@ class Life(sprite.Sprite):
         self.posY = yPos
 
     def update(self, *args):
-        col = Color()
-        Collision.detectionBorders(self.rect, self.screen, col.ORANGE)
         self.screen.blit(self.image, self.rect)

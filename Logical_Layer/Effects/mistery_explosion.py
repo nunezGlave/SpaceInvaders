@@ -13,7 +13,7 @@ class MysteryExplosion(sprite.Sprite):
     # Parameterized Constructor
     def __init__(self, gameScreen: Screen, mystery : Mystery, score: int, *groups):
         super(MysteryExplosion, self).__init__(*groups)
-        self.text = Text(str(score), FONT, 20, Color().WHITE, mystery.rect.x + 20, mystery.rect.y + 6) # Change this part
+        self.text = Text(str(score), FONT, 20, Color.WHITE, mystery.rect.x + 20, mystery.rect.y + 6) # Change this part
         self.timer = time.get_ticks()
         self.screen = gameScreen.surface
 

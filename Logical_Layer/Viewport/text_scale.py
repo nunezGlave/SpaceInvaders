@@ -1,4 +1,6 @@
 from Logical_Layer.Interfaces.scale import Scale
+import pygame
+from pygame.locals import *
 from pygame import *
 
 class TextScale(Scale):
@@ -6,6 +8,7 @@ class TextScale(Scale):
         super().__init__(scaleType)
         self.originalSize = size
         self.scaleSize = self.newSize()
+        
 
     def newSize(self):
         match super().scaleNumber:
@@ -21,6 +24,8 @@ class TextScale(Scale):
     
     @classmethod 
     def scaleWidth(cls, text: str, textFont: str, letterSize: int):
-        font = font.Font(textFont, letterSize)
+        
+        font = pygame.font.Font(textFont, letterSize)
         surface : Surface = font.render(text, True, (255, 255, 255))
         return surface.get_width()
+    
