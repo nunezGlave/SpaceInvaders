@@ -28,8 +28,7 @@ class Enemy(sprite.Sprite):
 
     # Overrides the Update method which is responsible for displaying elements on the screen
     def update(self, *args):
-        col = Color()
-        Collision.detectionBorders(self.rect, self.screen, col.PURPLE)
+        Collision.detectionBorders(self.rect, self.screen, Color.PURPLE)
         self.screen.blit(self.image, self.rect)
 
     def load_images(self):

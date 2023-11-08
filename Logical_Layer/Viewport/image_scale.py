@@ -14,9 +14,9 @@ class ImageScale(Scale):
     def newSize(self):
         match super().scaleNumber:
             case 2:
-                newSize = self.originalSize * 0.8         # 20% less than the original size
+                newSize = self.originalSize * 0.7         # 20% less than the original size
             case 3:
-                sizeType2 = self.originalSize * 0.8       # 20% less than the original size
+                sizeType2 = self.originalSize * 0.7       # 20% less than the original size
                 newSize = sizeType2 * 0.8                 # 20% less than the second type's size
             case _:
                 newSize = self.originalSize               # type 1 or unspecified remains the same size
