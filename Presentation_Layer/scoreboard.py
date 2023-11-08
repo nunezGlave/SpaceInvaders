@@ -20,7 +20,6 @@ def should_exit(evt):
 if __name__ == '__main__':
     # Variables to control the game
     gameControl = True
-    listColor = Color()
 
     # Start the video game
     init()
@@ -30,15 +29,15 @@ if __name__ == '__main__':
     # Set main screen dimensions
     window = display.set_mode((display.Info().current_w , display.Info().current_h))
     screen = Screen(window)
-    screen.surface.fill(listColor.WHITE)
+    screen.surface.fill(Color.WHITE.value)
      
     # Font letter
     FONT_PATH = FULL_PATH + '/Assets/Fonts/'
     FONT = FONT_PATH + 'space_invaders.ttf'
 
     # Create Text variables
-    title = Text('SCOREBOARD', FONT, 40, listColor.BLUE, screen.widthP(50), screen.heightP(20), Align.CENTER)      
-    header = Text('Player {0} Score'.format(" " * 42),FONT, 35, listColor.BLACK, screen.widthP(50), title.textHeight + 25, Align.CENTER)
+    title = Text('SCOREBOARD', FONT, 40, Color.BLUE, screen.widthP(50), screen.heightP(20), Align.CENTER)      
+    header = Text('Player {0} Score'.format(" " * 42),FONT, 35, Color.BLACK, screen.widthP(50), title.textHeight + 25, Align.CENTER)
     
     # Create database connection
     bd = DataBase("Scoreboard")    
@@ -60,7 +59,7 @@ if __name__ == '__main__':
     numSpaces = 55
     for index, result in enumerate(results):
         format = "{0}{1}{2}".format(result[0], " " * numSpaces, result[1])
-        row = Text(format, FONT, 30, listColor.BLUE, screen.widthP(50), header.textHeight + 10 + (index * 70), Align.CENTER)
+        row = Text(format, FONT, 30, Color.BLUE, screen.widthP(50), header.textHeight + 10 + (index * 70), Align.CENTER)
         listScores.append(row)
 
     # Render games 
