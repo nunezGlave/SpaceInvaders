@@ -66,6 +66,8 @@ class NeuronLayer:
 
 #Space_bot is the class that contains the neural network and the methods to train it
 class space_bot:
+    bot_count = 0
+    space_bots = [None]*4
     def __init__(self, layer_count, my_neuron_count, subject):
         self.observer = subject
         self.neuron_count = my_neuron_count
@@ -77,7 +79,12 @@ class space_bot:
         self.output_layer = None
         self.choice = 0
 #Learning rate is the flat random range amount that each weight and bias is changed by
-        self.learning_rate = 0.1
+        self.learning_rate = 0.5
+        self.score = 0
+        self.index = space_bot.bot_count
+#        space_bot.space_bots[self.index] = self
+        space_bot.bot_count += 1
+
 #Initializes the input neurons
     def set_inputs(self, input_vars):
         if self.input_layer is None:
@@ -139,20 +146,20 @@ class space_bot:
                 self.choice = i
             i += 1
         if self.choice == 0:
-            self.observer.left()
-            self.observer.shoot()
+            self.observer.send_command("left")
+            self.observer.send_command("shoot")
         elif self.choice == 1:
-            self.observer.right()
-            self.observer.shoot()
+            self.observer.send_command("right")
+            self.observer.send_command("shoot")
         elif self.choice == 2:
-            self.observer.right()
+            self.observer.send_command("right")
         elif self.choice == 3:
-            self.observer.left()
+            self.observer.send_command("left")
     
     #Takes the bot and creates a child copy of it with slight mutations to each weight and bias
     def split_bot(self):
-        copy = space_bot(len(self.hidden_layers), self.neuron_count)
-        copy.set_inputs([0.0]*12)
+        copy = space_bot(len(self.hidden_layers), self.neuron_count, self.observer)
+        copy.set_inputs([0.0]*3)
         copy.set_layers()
         for i in range(len(self.hidden_layers)):
             for j in range(len(self.hidden_layers[i].layer)):
@@ -164,3 +171,8 @@ class space_bot:
                 copy.output_layer.layer[i].set_weight_at(j, self.output_layer.layer[i].get_weight_at(j)+random.uniform(-self.learning_rate, self.learning_rate))
                 copy.output_layer.layer[i].bias = self.output_layer.layer[i].bias + random.uniform(-self.learning_rate, self.learning_rate)
         return copy
+    def end_game(self,score):
+        self.score = score
+        self.learning_rate = (300-self.score)/300
+        return self.split_bot()
+
