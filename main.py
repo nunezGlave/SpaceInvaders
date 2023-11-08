@@ -1,10 +1,8 @@
-'''
-    Created by Alexander
-'''
+''' Created by Alexander '''
 
 # Import libraries
-from pygame import *
-from Models.game import SpaceInvaders
+from Logical_Layer.Viewport.space_invader import SpaceInvaders
+from Logical_Layer.Viewport.screen_surface import Screen
 from pygame import *
 
 if __name__ == '__main__':
@@ -16,32 +14,27 @@ if __name__ == '__main__':
     init()
     clock = time.Clock()
     display.set_caption('Space Invaders')
-    screenWidth = display.Info().current_w
-    screenHeight = display.Info().current_h
 
     # Set main screen dimensions
-    screen = display.set_mode((screenWidth , screenHeight)) # 800 600
-
-    # Determine half screen width and height
-    halfScreenWidth = screenWidth / 2
-    halfScreenHeight = screenHeight / 2
+    window = display.set_mode((display.Info().current_w , display.Info().current_h))
+    screen = Screen(window)
+    scaleImage = optionMenu
     
     print('Display Mode:')
-    print('{} - {}'.format(screenWidth, screenHeight))
+    print('{} - {}'.format(screen.width, screen.height))
 
     # Initialize games depending on the type of game (single player or multiplayer)
     match optionMenu:
         case 1:
-                 
-            fullScreen = SpaceInvaders(optionMenu, screen, screenWidth, screenHeight)
+            fullScreen = SpaceInvaders(scaleImage, 0, screen, screen.width, screen.height)
         case 2:
-            leftScreen = SpaceInvaders(optionMenu, screen, halfScreenWidth, screenHeight)
-            rightScreen = SpaceInvaders(optionMenu, screen, halfScreenWidth, screenHeight, halfScreenWidth)
+            leftScreen = SpaceInvaders(scaleImage, 0, screen, screen.halfWidth, screen.height)
+            rightScreen = SpaceInvaders(scaleImage, 1, screen, screen.halfWidth, screen.height, screen.halfWidth)
         case 3:
-            leftTop = SpaceInvaders(optionMenu, screen, halfScreenWidth, halfScreenHeight)
-            leftBottom = SpaceInvaders(optionMenu, screen, halfScreenWidth, halfScreenHeight, 0, halfScreenHeight)
-            rightTop = SpaceInvaders(optionMenu, screen, halfScreenWidth, halfScreenHeight, halfScreenWidth)
-            rightBottom = SpaceInvaders(optionMenu, screen, halfScreenWidth, halfScreenHeight, halfScreenWidth, halfScreenHeight)
+            leftTop = SpaceInvaders(scaleImage, 0, screen, screen.halfWidth, screen.halfHeight)
+            leftBottom = SpaceInvaders(scaleImage, 0, screen, screen.halfWidth, screen.halfHeight, 0, screen.halfHeight)
+            rightTop = SpaceInvaders(scaleImage, 1, screen, screen.halfWidth, screen.halfHeight, screen.halfWidth)
+            rightBottom = SpaceInvaders(scaleImage, 1, screen, screen.halfWidth, screen.halfHeight, screen.halfWidth, screen.halfHeight)
         case _:
             gameControl = False
             print("Incorrect Menu Option")

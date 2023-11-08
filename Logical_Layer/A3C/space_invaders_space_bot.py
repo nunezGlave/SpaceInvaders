@@ -8,7 +8,6 @@ import sys
 import math
 from os.path import abspath, dirname
 from random import choice
-import Space_bot
 
 
 BASE_PATH = abspath(dirname(__file__))
