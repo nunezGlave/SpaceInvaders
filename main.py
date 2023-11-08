@@ -7,7 +7,7 @@ from pygame import *
 
 if __name__ == '__main__':
     # Variables to control the game
-    optionMenu = 4
+    optionMenu = 1
     gameControl = True
 
     # Start the video game
