@@ -9,3 +9,6 @@ class Observer:
     
     def send_command(self, command):
         self.game_instance.command(command)
+    def end_game(self,score):
+        pass
+
