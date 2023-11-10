@@ -43,11 +43,15 @@ IMG_NAMES = ['ship', 'mystery',
 
 class SpaceInvaders():
     # Parameterized Constructor
+    instanceCount = 0
+    allGameInstances = []
     def __init__(self, scale: int, controlGame: int, gameWindow: Screen, width : float, height: float, leftPos: int = 0, topPos : int = 0):
         # Background sound
         mixer.pre_init(44100, -16, 1, 4096)
-        mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play()
-
+        self.index = SpaceInvaders.instanceCount
+        if self.index == 0:
+            mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play()
+        SpaceInvaders.instanceCount += 1
         # Select the screen dimension and set with a background image
         self.subWindow = gameWindow.surface.subsurface(Rect(leftPos, topPos, width, height))
         self.screen = Screen(self.subWindow)
@@ -99,6 +103,9 @@ class SpaceInvaders():
         self.command_right = False
         self.command_shoot = False
         self.observer = self.determineObserver(controlGame)
+        
+        SpaceInvaders.allGameInstances.append(self)
+
 
     # Reset objects and variables to start a new game
     def restartGame(self, score: int):
@@ -123,7 +130,9 @@ class SpaceInvaders():
 
     # Run the game
     def main(self):
+
         if self.mainScreen:
+
             self.subWindow.blit(self.background, (0, 0))
             self.titleText.draw(self.subWindow)
             self.titleText2.draw(self.subWindow)
@@ -132,16 +141,18 @@ class SpaceInvaders():
             self.enemy3Text.draw(self.subWindow)
             self.enemy4Text.draw(self.subWindow)
             self.create_main_menu()
+
             for e in event.get():
+
                 if self.should_exit(e):
                     sys.exit()
                 if e.type == KEYUP:
-                    # Only create blockes on a new game, not a new round
-                    self.make_group_blockers(6)
-                    self.livesGroup.add(self.life1, self.life2, self.life3)
-                    self.restartGame(0)
-                    self.startGame = True
-                    self.mainScreen = False
+                    for games in SpaceInvaders.allGameInstances:
+                        games.make_group_blockers(6)
+                        games.livesGroup.add(self.life1, self.life2, self.life3)
+                        games.restartGame(0)
+                        games.startGame = True
+                        games.mainScreen = False
 
         elif self.startGame:
             if not self.enemies and not self.explosionsGroup:
@@ -161,6 +172,7 @@ class SpaceInvaders():
                     self.gameTimer += 3000
             else:
                 currentTime = time.get_ticks()
+
                 self.play_main_music(currentTime)
                 self.subWindow.blit(self.background, (0, 0))
                 self.allBlockers.update(self.subWindow)
@@ -463,4 +475,5 @@ class SpaceInvaders():
 
     @staticmethod
     def should_exit(evt):
-        return evt.type == QUIT or (evt.type == KEYUP and evt.key == K_ESCAPE)         # type: (pygame.event.EventType) -> bool
+        # type: (pygame.event.EventType) -> bool
+        return evt.type == QUIT or (evt.type == KEYUP and evt.key == K_ESCAPE)
