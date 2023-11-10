@@ -14,7 +14,7 @@ class Human_Observer(Observer):
                 self.send_command("left")
             if self.keys[pygame.K_RIGHT]:
                 self.send_command("right")
-            if self.keys[pygame.K_SPACE]:
+            if self.keys[pygame.K_UP] or self.keys[pygame.K_SPACE]:
                 self.send_command("shoot")
         elif self.player_index == 1:
             if self.keys[pygame.K_a]:
