@@ -19,7 +19,6 @@ if __name__ == '__main__':
     window = display.set_mode((display.Info().current_w , display.Info().current_h))
     screen = Screen(window)
     scaleImage = optionMenu
-    
     print('Display Mode:')
     print('{} - {}'.format(screen.width, screen.height))
 
@@ -67,5 +66,6 @@ if __name__ == '__main__':
                 gameControl = False
 
         display.update()
+
         clock.tick(60)
 

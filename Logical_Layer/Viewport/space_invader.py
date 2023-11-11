@@ -104,6 +104,7 @@ class SpaceInvaders():
         if controlGame == 2:
             self.gameSpeed = 10
         SpaceInvaders.allGameInstances.append(self)
+        self.reloadTimer = 1
 
 
     # Reset objects and variables to start a new game
@@ -113,14 +114,14 @@ class SpaceInvaders():
         self.playerGroup = sprite.Group(self.player)
         self.explosionsGroup = sprite.Group()
         self.bullets = sprite.Group()
-        self.mysteryShip = Mystery(self.screen, self.MISTERY, self.enemies, -100, self.scoreText.textHeight)
+        self.mysteryShip = Mystery(self.screen, self.MISTERY, self.enemies, -300 *self.gameSpeed, self.scoreText.textHeight)
         self.mysteryGroup = sprite.Group(self.mysteryShip)
         self.enemyBullets = sprite.Group()
         self.allSprites = sprite.Group(self.player, self.enemies, self.livesGroup, self.mysteryShip)
         self.keys = key.get_pressed()
-        self.timer = time.get_ticks()
-        self.noteTimer = time.get_ticks()
-        self.shipTimer = time.get_ticks()
+        self.timer = time.get_ticks()*self.gameSpeed
+        self.noteTimer = time.get_ticks()*self.gameSpeed
+        self.shipTimer = time.get_ticks()*self.gameSpeed
         self.score = score
         self.create_audio()
         self.makeNewShip = False
@@ -150,7 +151,7 @@ class SpaceInvaders():
 
         elif self.startGame:
             if not self.enemies and not self.explosionsGroup:
-                currentTime = time.get_ticks()
+                currentTime = time.get_ticks()*self.gameSpeed
                 if currentTime - self.gameTimer < 3000:
                     self.screenSurface.blit(self.background, (0, 0))
                     self.scoreNumber = Text(str(self.score), FONT, self.scoreText.size + 2, Color.GREEN, self.scoreText.textWidth + 12, self.scoreText.yPos - 1)
@@ -165,7 +166,7 @@ class SpaceInvaders():
                     self.groupEnemyPosition += self.enemies.verticalVelocity    # Move enemies closer to bottom
                     self.gameTimer += 3000
             else:
-                currentTime = time.get_ticks()
+                currentTime = time.get_ticks()*self.gameSpeed
                # self.play_main_music(currentTime)
 
                 self.screenSurface.blit(self.background, (0, 0))
@@ -185,7 +186,7 @@ class SpaceInvaders():
 
         elif self.gameOver:
             self.observer.end_game(self.score)
-            currentTime = time.get_ticks()
+            currentTime = time.get_ticks()*self.gameSpeed
             self.groupEnemyPosition = self.Enemy_DEFAULT_POSITION   # Reset enemy starting position
             self.create_game_over(currentTime)
 
@@ -258,8 +259,8 @@ class SpaceInvaders():
     # Check the input handle the ship limits and movement
     def check_input_player(self):
         # Determine ship's limit
-        leftLimit = 10
-        rightLimit = self.screen.width - 10
+        leftLimit = 60
+        rightLimit = self.screen.width - 60
 
         # Draw boundaries of the player's ship
         Limit.verticalBorders(self.screen, Color.PURPLE, leftLimit, rightLimit)
@@ -278,19 +279,22 @@ class SpaceInvaders():
                 self.player.rect.x += self.player.speed
             self.command_right = False
         if self.command_shoot:
-            if len(self.bullets) == 0 and self.shipAlive:
-                if self.score < 5:
+            if (time.get_ticks()*self.gameSpeed - self.reloadTimer > 1000 )and self.shipAlive:
+                self.reloadTimer = time.get_ticks()*self.gameSpeed
+                if self.score < 500:
                     bullet = Bullet(self.screen, self.player.rect.centerx, self.player.rect.top - 9, -1, 15, self.images['laser'], 'center')
                     self.bullets.add(bullet)
                     self.allSprites.add(self.bullets)
-                    self.sounds['shoot2'].play()
+                    if self.gameSpeed==1:
+                        self.sounds['shoot2'].play()
                 else:
                     leftbullet = Bullet(self.screen, self.player.rect.centerx - 15, self.player.rect.top - 9, -1, 15, self.images['laser'], 'left')
                     rightbullet = Bullet(self.screen, self.player.rect.centerx + 15, self.player.rect.top - 9, -1, 15, self.images['laser'], 'right')
                     self.bullets.add(leftbullet)
                     self.bullets.add(rightbullet)
                     self.allSprites.add(self.bullets)
-                    self.sounds['shoot2'].play()
+                    if self.gameSpeed==1:
+                        self.sounds['shoot2'].play()
             self.command_shoot = False
 
     # Create an 'N' number of blocks
@@ -374,11 +378,11 @@ class SpaceInvaders():
 
     # Create enemies' shoots in random order
     def make_enemies_shoot(self):
-        if (time.get_ticks() - self.timer) > 700 and self.enemies:
+        if (time.get_ticks()*(self.gameSpeed) - self.timer) > 1000 and self.enemies:
             enemy = self.enemies.random_bottom()
-            self.enemyBullets.add(Bullet(self.screen, enemy.rect.centerx, enemy.rect.centery + 10, 1, 5, self.images['enemy_laser'], 'center'))
+            self.enemyBullets.add(Bullet(self.screen, enemy.rect.centerx, enemy.rect.centery + 10, 1, 15, self.images['enemy_laser'], 'center'))
             self.allSprites.add(self.enemyBullets)
-            self.timer = time.get_ticks()
+            self.timer = time.get_ticks()*self.gameSpeed
 
     # Create a new ship when a life is lost
     def make_new_ship(self, createShip: bool, currentTime: int, shipCoor: Ship):
@@ -413,7 +417,7 @@ class SpaceInvaders():
             self.sounds['invaderkilled'].play()
             self.calculate_score(enemy.row)
             EnemyExplosion(self.screen, self.scale, enemy, self.explosionsGroup)
-            self.gameTimer = time.get_ticks()
+            self.gameTimer = time.get_ticks()*self.gameSpeed
 
         # Detect collision of Mystery enemy and ship's bullets
         for mystery in sprite.groupcollide(self.mysteryGroup, self.bullets, True, True).keys():
@@ -421,7 +425,7 @@ class SpaceInvaders():
             self.sounds['mysterykilled'].play()
             score = self.calculate_score(mystery.row)
             MysteryExplosion(self.screen, mystery, score, self.explosionsGroup)
-            mysteryShip = Mystery(self.screen, self.MISTERY, self.enemies, -100, self.scoreText.textHeight)
+            mysteryShip = Mystery(self.screen, self.MISTERY, self.enemies, -300*self.gameSpeed, self.scoreText.textHeight)
             self.allSprites.add(mysteryShip)
             self.mysteryGroup.add(mysteryShip)
 
@@ -439,7 +443,7 @@ class SpaceInvaders():
             self.sounds['shipexplosion'].play()
             ShipExplosion(self.screen, player, self.explosionsGroup)
             self.makeNewShip = True
-            self.shipTimer = time.get_ticks()
+            self.shipTimer = time.get_ticks()*self.gameSpeed
             self.shipAlive = False
 
         # Determine the collision of enemies with the ship

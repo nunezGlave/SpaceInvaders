@@ -16,7 +16,7 @@ class EnemiesGroup(sprite.Group):
         self.screen = screen
         self.width = self.screen.width
         self.collisionLimit = enemyPosition + (rows * enemySpace)    # The enemy's point where it will begin to collide with other entities
-        self.verticalVelocity = 35
+        self.verticalVelocity = 15
         self.horizontalVelocity = 10
 
         self._aliveColumns = list(range(columns))

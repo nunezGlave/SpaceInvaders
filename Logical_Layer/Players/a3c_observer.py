@@ -24,21 +24,22 @@ class A3C_Observer(Observer):
             self.average_enemy_x += enemy.rect.x
         if len(self.game_instance.enemies) > 0:
             self.average_enemy_x /= len(self.game_instance.enemies)
-        for bullet in self.game_instance.bullets:
+        for bullet in self.game_instance.enemyBullets:
             self.bullet_x.append(bullet.rect.x)
-        self.space_bot.choose_move([self.get_player_screen_position(), 0, 0])
+        self.space_bot.choose_move([self.get_player_screen_position(), self.get_bullets_above_player(), self.get_enemies_position()])
        # self.print_update()
 
     def get_player_screen_position(self):
         return (self.player_x -self.game_instance.screen.width/2)/(self.game_instance.screen.width/2)
 
     def get_bullets_above_player(self):
-        bullet_count = 0
+        bullet_count = -2
         for bullet_x in self.bullet_x:
-            if self.player_x - 50 < bullet_x < self.player_x + 50:
+            if self.player_x - 100 < bullet_x < self.player_x + 100:
                 bullet_count += 1
         return bullet_count
-
+    def get_enemies_position(self):
+      return  (self.average_enemy_x - self.player_x) / (self.game_instance.screen.width/2)
     def print_update(self):
         str_out = ""
         str_out += "Player X: " + str(self.player_x)

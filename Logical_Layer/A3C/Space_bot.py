@@ -160,7 +160,7 @@ class Space_bot:
     
     #Takes the bot and creates a child copy of it with slight mutations to each weight and bias
     def split_bot(self, observer):
-        self.learning_rate = abs(2000-self.score/2000)
+     #   self.learning_rate = 2000-self.score/2000
         copy = Space_bot(len(self.hidden_layers), self.neuron_count, observer)
         copy.set_inputs([0.0]*3)
         copy.set_layers()
