@@ -103,7 +103,9 @@ class SpaceInvaders():
         self.command_right = False
         self.command_shoot = False
         self.observer = self.determineObserver(controlGame)
-        
+        self.gameSpeed = 1
+        if controlGame == 2:
+            self.gameSpeed = 10
         SpaceInvaders.allGameInstances.append(self)
 
 
@@ -113,7 +115,7 @@ class SpaceInvaders():
         self.playerGroup = sprite.Group(self.player)
         self.explosionsGroup = sprite.Group()
         self.bullets = sprite.Group()
-        self.mysteryShip = Mystery(self.screen, self.MISTERY, -100, self.scoreText.textHeight)
+        self.mysteryShip = Mystery(self.screen, self.MISTERY, -100*self.gameSpeed, self.scoreText.textHeight)
         self.mysteryGroup = sprite.Group(self.mysteryShip)
         self.enemyBullets = sprite.Group()
         self.make_enemies()
@@ -171,9 +173,9 @@ class SpaceInvaders():
                     self.restartGame(self.score)
                     self.gameTimer += 3000
             else:
-                currentTime = time.get_ticks()
+                currentTime = time.get_ticks()*self.gameSpeed
 
-                self.play_main_music(currentTime)
+               # self.play_main_music(currentTime)
                 self.subWindow.blit(self.background, (0, 0))
                 self.allBlockers.update(self.subWindow)
                 self.scoreNumber = Text(str(self.score), FONT, self.scoreText.size + 2, Color.GREEN, self.scoreText.textWidth + 12, self.scoreText.yPos - 1)
@@ -190,6 +192,7 @@ class SpaceInvaders():
                 self.observer.update(self.player.rect.x, self.enemies, self.bullets)
 
         elif self.gameOver:
+            self.observer.end_game(self.score)
             currentTime = time.get_ticks()
             self.groupEnemyPosition = self.Enemy_DEFAULT_POSITION             # Reset enemy starting position
             self.create_game_over(currentTime)
@@ -256,6 +259,13 @@ class SpaceInvaders():
             self.command_right = True
         elif command == "shoot":
             self.command_shoot = True
+        elif command == "reset":
+            for games in SpaceInvaders.allGameInstances:
+                games.make_group_blockers(6)
+                games.livesGroup.add(self.life1, self.life2, self.life3)
+                games.restartGame(0)
+                games.startGame = True
+                games.mainScreen = False
 
     # Check the input handle the ship limits and movement
     def check_input_player(self):
@@ -407,7 +417,7 @@ class SpaceInvaders():
             self.sounds['mysterykilled'].play()
             score = self.calculate_score(mystery.row)
             MysteryExplosion(self.screen, mystery, score, self.explosionsGroup)
-            mysteryShip = Mystery(self.screen, self.MISTERY, -100, self.scoreText.textHeight)
+            mysteryShip = Mystery(self.screen, self.MISTERY, -100 * self.gameSpeed, self.scoreText.textHeight)
             self.allSprites.add(mysteryShip)
             self.mysteryGroup.add(mysteryShip)
 
