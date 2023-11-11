@@ -65,9 +65,10 @@ class NeuronLayer:
         return [neuron.value for neuron in self.layer]
 
 #Space_bot is the class that contains the neural network and the methods to train it
-class space_bot:
+class Space_bot:
     bot_count = 0
     space_bots = [None]*4
+    generation = 0
     def __init__(self, layer_count, my_neuron_count, subject):
         self.observer = subject
         self.neuron_count = my_neuron_count
@@ -79,11 +80,12 @@ class space_bot:
         self.output_layer = None
         self.choice = 0
 #Learning rate is the flat random range amount that each weight and bias is changed by
-        self.learning_rate = 0.5
+        self.learning_rate = 0.2
         self.score = 0
-        self.index = space_bot.bot_count
-#        space_bot.space_bots[self.index] = self
-        space_bot.bot_count += 1
+        self.index = Space_bot.bot_count
+        Space_bot.space_bots[self.index] = self
+        Space_bot.bot_count += 1
+        self.playing = True
 
 #Initializes the input neurons
     def set_inputs(self, input_vars):
@@ -157,8 +159,9 @@ class space_bot:
             self.observer.send_command("left")
     
     #Takes the bot and creates a child copy of it with slight mutations to each weight and bias
-    def split_bot(self):
-        copy = space_bot(len(self.hidden_layers), self.neuron_count, self.observer)
+    def split_bot(self, observer):
+     #   self.learning_rate = 2000-self.score/2000
+        copy = Space_bot(len(self.hidden_layers), self.neuron_count, observer)
         copy.set_inputs([0.0]*3)
         copy.set_layers()
         for i in range(len(self.hidden_layers)):
@@ -172,7 +175,27 @@ class space_bot:
                 copy.output_layer.layer[i].bias = self.output_layer.layer[i].bias + random.uniform(-self.learning_rate, self.learning_rate)
         return copy
     def end_game(self,score):
-        self.score = score
-        self.learning_rate = (300-self.score)/300
-        return self.split_bot()
+        self.playing = False
+        gameOver = True
+        for bot in Space_bot.space_bots:
+            if bot.playing:
+                gameOver = False
+        if gameOver:
+            highest_score = 0
+            winner = self
+            for bot in Space_bot.space_bots:
+                if bot.score > highest_score:
+                    highest_score = bot.score
+                    winner = bot
+            print("Gen ["+str(Space_bot.generation)+"] Winner: " + str(winner.index)+ " Score: " + str(winner.score))
+            Space_bot.generation += 1
+            Old_bots = Space_bot.space_bots
+            Space_bot.space_bots = [None] * 4
+            Space_bot.bot_count = 0
+            for bot in Old_bots:
+                bot.observer.space_bot = winner.split_bot(bot.observer)
+                bot.observer.space_bot.index = bot.index
+                Space_bot.space_bots[bot.index] = bot.observer.space_bot
+            self.observer.send_command("reset")
+
 
