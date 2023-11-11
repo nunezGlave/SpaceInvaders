@@ -9,15 +9,16 @@ class A3C_Observer(Observer):
         self.enemies_per_column = [0] * 11
         self.bullet_x = []
         self.average_enemy_x = 0
-        self.Space_bot = Space_bot.space_bot(3,3,self)
-        self.Space_bot.set_inputs([0.0] * 3)
-        self.Space_bot.set_layers()
+        self.space_bot = Space_bot.Space_bot(3, 3, self)
+        self.space_bot.set_inputs([0.0] * 3)
+        self.space_bot.set_layers()
         self.start = True
 
     def update(self, px, enemies, bullets):
         self.player_x = self.game_instance.player.rect.x
         self.enemies_per_column = [0] * 11
         self.bullet_x = []
+        self.space_bot.score = self.game_instance.score
         for enemy in self.game_instance.enemies:
             self.enemies_per_column[enemy.column] += 1
             self.average_enemy_x += enemy.rect.x
@@ -25,7 +26,7 @@ class A3C_Observer(Observer):
             self.average_enemy_x /= len(self.game_instance.enemies)
         for bullet in self.game_instance.bullets:
             self.bullet_x.append(bullet.rect.x)
-        self.Space_bot.choose_move([Space_bot.sigmoid(self.get_player_screen_position()), 0,0])
+        self.space_bot.choose_move([self.get_player_screen_position(), 0, 0])
        # self.print_update()
 
     def get_player_screen_position(self):
@@ -47,6 +48,4 @@ class A3C_Observer(Observer):
         str_out += "Bullets: " + str(self.bullet_x)
         print(str_out)
     def end_game(self,score):
-        self.Space_bot = self.Space_bot.end_game(score)
-        self.game_instance.command("reset")
-
+        self.space_bot.end_game(score)
