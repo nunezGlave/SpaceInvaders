@@ -20,33 +20,40 @@ if __name__ == '__main__':
     screenHeight = display.Info().current_h
 
     # Set main screen dimensions
-    screen = display.set_mode((screenWidth , screenHeight)) # 800 600
+    screen = display.set_mode((screenWidth, screenHeight))  # 800 600
 
     # Determine half screen width and height
     halfScreenWidth = screenWidth / 2
     halfScreenHeight = screenHeight / 2
-    
+
     print('Display Mode:')
     print('{} - {}'.format(screenWidth, screenHeight))
 
     # Initialize games depending on the type of game (single player or multiplayer)
     match optionMenu:
         case 1:
-                 
-            fullScreen = SpaceInvaders(optionMenu, screen, screenWidth, screenHeight)
+
+            fullScreen = SpaceInvaders(
+                optionMenu, screen, screenWidth, screenHeight)
         case 2:
-            leftScreen = SpaceInvaders(optionMenu, screen, halfScreenWidth, screenHeight)
-            rightScreen = SpaceInvaders(optionMenu, screen, halfScreenWidth, screenHeight, halfScreenWidth)
+            leftScreen = SpaceInvaders(
+                optionMenu, screen, halfScreenWidth, screenHeight)
+            rightScreen = SpaceInvaders(
+                optionMenu, screen, halfScreenWidth, screenHeight, halfScreenWidth)
         case 3:
-            leftTop = SpaceInvaders(optionMenu, screen, halfScreenWidth, halfScreenHeight)
-            leftBottom = SpaceInvaders(optionMenu, screen, halfScreenWidth, halfScreenHeight, 0, halfScreenHeight)
-            rightTop = SpaceInvaders(optionMenu, screen, halfScreenWidth, halfScreenHeight, halfScreenWidth)
-            rightBottom = SpaceInvaders(optionMenu, screen, halfScreenWidth, halfScreenHeight, halfScreenWidth, halfScreenHeight)
+            leftTop = SpaceInvaders(
+                optionMenu, screen, halfScreenWidth, halfScreenHeight)
+            leftBottom = SpaceInvaders(
+                optionMenu, screen, halfScreenWidth, halfScreenHeight, 0, halfScreenHeight)
+            rightTop = SpaceInvaders(
+                optionMenu, screen, halfScreenWidth, halfScreenHeight, halfScreenWidth)
+            rightBottom = SpaceInvaders(
+                optionMenu, screen, halfScreenWidth, halfScreenHeight, halfScreenWidth, halfScreenHeight)
         case _:
             gameControl = False
             print("Incorrect Menu Option")
 
-    # Render games 
+    # Render games
     while gameControl:
         match optionMenu:
             case 1:
@@ -64,4 +71,3 @@ if __name__ == '__main__':
 
         display.update()
         clock.tick(60)
-
