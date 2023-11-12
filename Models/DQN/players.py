@@ -1,60 +1,75 @@
+import random
 import numpy as np
-import tensorflow as tf
-from tf_agents.agents.dqn import dqn_agent
-from tf_agents.networks import q_network
-from tf_agents.utils import common
-from tf_agents.environments import tf_py_environment
-from tf_agents.environments import wrappers
-from tf_agents.replay_buffers import tf_uniform_replay_buffer
-from tf_agents.trajectories import trajectory
-from tf_agents.policies import random_tf_policy
+from collections import deque
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+
+class DQNNetwork(nn.Module):
+    def __init__(self, input_shape, action_space):
+        super(DQNNetwork, self).__init__()
+        self.fc1 = nn.Linear(input_shape, 64)
+        self.fc2 = nn.Linear(64, 32)
+        self.fc3 = nn.Linear(32, action_space)
+
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        return self.fc3(x)
 
 
 class DQNAgent:
-    def __init__(self, game_instance, train_env, eval_env):
+    def __init__(self, game_instance):
         self.game_instance = game_instance
+        self.state_size = 1  # Define the size of the state
+        self.action_size = 3  # "left", "right", "shoot"
+        self.memory = deque(maxlen=2000)
+        self.gamma = 0.95  # discount factor
+        self.epsilon = 1.0  # exploration rate
+        self.epsilon_min = 0.01
+        self.epsilon_decay = 0.995
+        self.learning_rate = 0.001
+        self.model = DQNNetwork(self.state_size, self.action_size)
+        self.optimizer = optim.Adam(
+            self.model.parameters(), lr=self.learning_rate)
 
-        self.train_env = tf_py_environment.TFPyEnvironment(train_env)
-        self.eval_env = tf_py_environment.TFPyEnvironment(eval_env)
+    def act(self, state):
+        if np.random.rand() <= self.epsilon:
+            return random.randrange(self.action_size)
+        state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
+        act_values = self.model(state)
+        return torch.argmax(act_values[0]).item()
 
-        self.q_net = q_network.QNetwork(
-            self.train_env.observation_spec(),
-            self.train_env.action_spec(),
-            fc_layer_params=(100,))
+    def remember(self, state, action, reward, next_state, done):
+        self.memory.append((state, action, reward, next_state, done))
 
-        self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=1e-3)
-
-        self.agent = dqn_agent.DqnAgent(
-            self.train_env.time_step_spec(),
-            self.train_env.action_spec(),
-            q_network=self.q_net,
-            optimizer=self.optimizer,
-            td_errors_loss_fn=common.element_wise_squared_loss,
-            train_step_counter=tf.Variable(0))
-
-        self.agent.initialize()
-
-        self.eval_policy = self.agent.policy
-        self.collect_policy = self.agent.collect_policy
-        self.random_policy = random_tf_policy.RandomTFPolicy(
-            self.train_env.time_step_spec(),
-            self.train_env.action_spec())
-
-        self.replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
-            data_spec=self.agent.collect_data_spec,
-            batch_size=self.train_env.batch_size,
-            max_length=100000)
+    def replay(self, batch_size=32):
+        if len(self.memory) < batch_size:
+            return
+        minibatch = random.sample(self.memory, batch_size)
+        for state, action, reward, next_state, done in minibatch:
+            target = reward
+            if not done:
+                next_state = torch.tensor(
+                    next_state, dtype=torch.float).unsqueeze(0)
+                target = (reward + self.gamma *
+                          torch.max(self.model(next_state).detach()).item())
+            target_f = self.model(torch.tensor(
+                state, dtype=torch.float).unsqueeze(0))
+            target_f[0][action] = target
+            self.optimizer.zero_grad()
+            loss = nn.MSELoss()(target_f, self.model(
+                torch.tensor(state, dtype=torch.float).unsqueeze(0)))
+            loss.backward()
+            self.optimizer.step()
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
 
     def send_command(self, command):
-        self.game_instance.command(command)
-
-    def update(self, player_x, enemies, bullets):
-        time_step = self.train_env.current_time_step()
-        action_step = self.collect_policy.action(time_step)
-
-        if action_step.action == 0:
-            self.send_command("left")
-        elif action_step.action == 1:
-            self.send_command("right")
-        elif action_step.action == 2:
-            self.send_command("shoot")
+        if command == "left":
+            self.game_instance.move_player_left()
+        elif command == "right":
+            self.game_instance.move_player_right()
+        elif command == "shoot":
+            self.game_instance.player_shoot()
