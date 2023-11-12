@@ -645,17 +645,11 @@ class SpaceInvaders(object):
                     self.check_collisions()
                     self.create_new_ship(self.makeNewShip, currentTime)
                     self.make_enemies_shoot()
-                    if ATTACH_HUMAN:
-                        self.human = players.Human(self)
-                        self.human.update(
-                            self.player.rect.x, self.enemies,
-                            self.bullets)
-                    else:
-                        self.human = players.DQNAgent(self)
-                        self.human.update(
-                            self.player.rect.x,
-                            self.enemies,
-                            self.bullets)
+                    self.human = players.Human(self)
+                    self.human.update(
+                        self.player.rect.x, self.enemies,
+                        self.bullets)
+
                         
                         
             elif self.gameOver:
