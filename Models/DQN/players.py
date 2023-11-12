@@ -1,18 +1,21 @@
-import random
 import numpy as np
-from collections import deque
-import torch
-import torch.nn as nn
-import torch.optim as optim
+import random
 import pygame
 
 
 class Human:
     def __init__(self, game_instance):
         self.game_instance = game_instance
+        self.enemies = self.game_instance.enemies
+        self.player = self.game_instance.player
+        self.player_bullets = self.game_instance.bullets
+        self.enemy_bullets = self.game_instance.enemyBullets
 
-
-    def update(self, player_x, enemies, bullets):
+    def update(self, player_x, enemies, bullets, enemy_bullets):
+        self.enemies = enemies.return_enemy()
+        self.player = player_x
+        self.bullets = bullets
+        self.enemy_bullets = enemy_bullets
         self.keys = pygame.key.get_pressed()
         if self.keys[pygame.K_LEFT]:
             self.send_command("left")
@@ -21,74 +24,77 @@ class Human:
         if self.keys[pygame.K_SPACE]:
             self.send_command("shoot")
 
-
     def send_command(self, command):
         self.game_instance.command(command)
 
-class DQNNetwork(nn.Module):
-    def __init__(self, input_shape, action_space):
-        super(DQNNetwork, self).__init__()
-        self.fc1 = nn.Linear(input_shape, 64)
-        self.fc2 = nn.Linear(64, 32)
-        self.fc3 = nn.Linear(32, action_space)
 
-    def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        return self.fc3(x)
+class DQN:
+    def __init__(self):
+        self.game_instance = None
+        self.enemies = None
+        self.player = None
+        self.bullets = None
+        self.enemy_bullets = None
+        self.keys = None
+        self.score = 0
 
 
-class DQNAgent:
-    def __init__(self, game_instance):
+        self.q_table = {}
+
+        self.alpha = 0.1
+        self.gamma = 0.9
+
+        self.action_size = 2
+
+
+    def update(self, game_instance, score, player, enemies, bullets_xy, enemy_bullets_xy):
         self.game_instance = game_instance
-        self.state_size = 1  # Define the size of the state
-        self.action_size = 3  # "left", "right", "shoot"
-        self.memory = deque(maxlen=2000)
-        self.gamma = 0.95  # discount factor
-        self.epsilon = 1.0  # exploration rate
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.995
-        self.learning_rate = 0.001
-        self.model = DQNNetwork(self.state_size, self.action_size)
-        self.optimizer = optim.Adam(
-            self.model.parameters(), lr=self.learning_rate)
+        self.enemies = enemies.return_enemy()
+        self.player = player.rect.x
+        self.bullets = bullets_xy
+        self.enemy_bullets = enemy_bullets_xy
+        self.keys = pygame.key.get_pressed()
+        self.score = score
 
-    def act(self, state):
-        if np.random.rand() <= self.epsilon:
-            return random.randrange(self.action_size)
-        state = torch.tensor(state, dtype=torch.float).unsqueeze(0)
-        act_values = self.model(state)
-        return torch.argmax(act_values[0]).item()
+    def request_action(self):
+        current_state = self.get_current_state()
+        if current_state not in self.q_table:
+            self.q_table[current_state] = np.zeros([self.action_size])
 
-    def remember(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done))
+        if random.random() < 0.3:
+            action = random.randint(0, self.action_size - 1)
+        else:
+            action = np.argmax(self.q_table[current_state])
 
-    def replay(self, batch_size=32):
-        if len(self.memory) < batch_size:
-            return
-        minibatch = random.sample(self.memory, batch_size)
-        for state, action, reward, next_state, done in minibatch:
-            target = reward
-            if not done:
-                next_state = torch.tensor(
-                    next_state, dtype=torch.float).unsqueeze(0)
-                target = (reward + self.gamma *
-                          torch.max(self.model(next_state).detach()).item())
-            target_f = self.model(torch.tensor(
-                state, dtype=torch.float).unsqueeze(0))
-            target_f[0][action] = target
-            self.optimizer.zero_grad()
-            loss = nn.MSELoss()(target_f, self.model(
-                torch.tensor(state, dtype=torch.float).unsqueeze(0)))
-            loss.backward()
-            self.optimizer.step()
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
-
+        if action == 0:
+            self.send_command("shoot")
+            self.send_command("left")
+            print("shoot left")
+        elif action == 1:
+            print("shoot right")
+            self.send_command("right")
+            self.send_command("shoot")
+        else:
+            print("Invalid action")
     def send_command(self, command):
-        if command == "left":
-            self.game_instance.move_player_left()
-        elif command == "right":
-            self.game_instance.move_player_right()
-        elif command == "shoot":
-            self.game_instance.player_shoot()
+        self.game_instance.command(command)
+
+    def learn(self):
+        current_state = self.get_current_state()
+        action = self.request_action(0)
+        next_state, reward = self.game_instance.step(action)
+
+        if next_state not in self.q_table:
+            self.q_table[next_state] = np.zeros([self.action_size])
+
+        self.q_table[current_state][action] = (1 - self.alpha) * self.q_table[current_state][action] + \
+            self.alpha * (reward + self.gamma *
+                          np.max(self.q_table[next_state]))
+
+    def get_current_state(self):
+        enemies_state = tuple(tuple(coords) for coords in self.enemies)
+        bullets_state = tuple(tuple(coords) for coords in self.bullets)
+        enemy_bullets_state = tuple(tuple(coords) for coords in self.enemy_bullets)
+
+        return (self.player, enemies_state, bullets_state, enemy_bullets_state, self.score)
+

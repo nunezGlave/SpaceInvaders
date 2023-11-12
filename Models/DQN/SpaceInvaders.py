@@ -43,7 +43,7 @@ class Ship(sprite.Sprite):
         sprite.Sprite.__init__(self)
         self.image = IMAGES['ship']
         self.rect = self.image.get_rect(topleft=(375, 540))
-        self.speed = 5
+        self.speed = 15
 
     def update(self, keys, *args):
         game.screen.blit(self.image, self.rect)
@@ -144,6 +144,12 @@ class EnemiesGroup(sprite.Group):
                 self.moveNumber += 1
 
             self.timer += self.moveTime
+
+    def return_enemy(self):
+        enemy_list = []
+        for enemy in self:
+            enemy_list.append([enemy.rect.x, enemy.rect.y])
+        return enemy_list
 
     def add_internal(self, *sprites):
         super(EnemiesGroup, self).add_internal(*sprites)
@@ -324,11 +330,12 @@ class Text(object):
 
 
 class SpaceInvaders(object):
-    def __init__(self):
+    def __init__(self, playerDQN):
         # It seems, in Linux buffersize=512 is not enough, use 4096 to prevent:
         #   ALSA lib pcm.c:7963:(snd_pcm_recover) underrun occurred
         mixer.pre_init(44100, -16, 1, 4096)
         init()
+        self.playerDQN = playerDQN
         mixer.Sound('sounds/d_e1m1.wav').play()
         self.clock = time.Clock()
         self.caption = display.set_caption('Space Invaders')
@@ -463,6 +470,18 @@ class SpaceInvaders(object):
                     self.sounds['shoot2'].play()
             self.command_shoot = False
 
+    def get_player_bullets(self):
+        bullets = []
+        for bullet in self.bullets:
+            bullets.append([bullet.rect.x, bullet.rect.y])
+        return bullets
+
+    def get_enemy_bullets(self):
+        bullets = []
+        for bullet in self.enemyBullets:
+            bullets.append([bullet.rect.x, bullet.rect.y])
+        return bullets
+
     def make_enemies(self):
         enemies = EnemiesGroup(10, 5)
         for row in range(5):
@@ -581,9 +600,7 @@ class SpaceInvaders(object):
         elif passed > 3000:
             self.mainScreen = True
 
-        for e in event.get():
-            if self.should_exit(e):
-                sys.exit()
+        self.mainScreen = True
 
     def main(self):
         while True:
@@ -596,19 +613,15 @@ class SpaceInvaders(object):
                 self.enemy3Text.draw(self.screen)
                 self.enemy4Text.draw(self.screen)
                 self.create_main_menu()
-                for e in event.get():
-                    if self.should_exit(e):
-                        sys.exit()
-                    if e.type == KEYUP:
-                        self.allBlockers = sprite.Group(
-                            self.make_blockers(0),
-                            self.make_blockers(1),
-                            self.make_blockers(2),
-                            self.make_blockers(3))
-                        self.livesGroup.add(self.life1, self.life2, self.life3)
-                        self.reset(0)
-                        self.startGame = True
-                        self.mainScreen = False
+                self.allBlockers = sprite.Group(
+                    self.make_blockers(0),
+                    self.make_blockers(1),
+                    self.make_blockers(2),
+                    self.make_blockers(3))
+                self.livesGroup.add(self.life1, self.life2, self.life3)
+                self.reset(0)
+                self.startGame = True
+                self.mainScreen = False
 
             elif self.startGame:
                 if not self.enemies and not self.explosionsGroup:
@@ -630,7 +643,6 @@ class SpaceInvaders(object):
                         self.gameTimer += 3000
                 else:
                     currentTime = time.get_ticks()
-                    #  self.play_main_music(currentTime)
                     self.screen.blit(self.background, (0, 0))
                     self.allBlockers.update(self.screen)
                     self.scoreText2 = Text(FONT, 20, str(self.score), GREEN,
@@ -645,23 +657,26 @@ class SpaceInvaders(object):
                     self.check_collisions()
                     self.create_new_ship(self.makeNewShip, currentTime)
                     self.make_enemies_shoot()
-                    self.human = players.Human(self)
-                    self.human.update(
-                        self.player.rect.x, self.enemies,
-                        self.bullets)
+                    self.dqn = self.playerDQN
+                    self.dqn.update(
+                        self,
+                        self.score,
+                        self.player, 
+                        self.enemies,
+                        self.get_player_bullets(),
+                        self.get_enemy_bullets())
+                    self.dqn.request_action()
 
                         
                         
             elif self.gameOver:
-                currentTime = time.get_ticks()
-                # Reset enemy starting position
                 self.enemyPosition = ENEMY_DEFAULT_POSITION
-                self.create_game_over(currentTime)
-                
+                self.create_game_over(time.get_ticks())
             display.update()
             self.clock.tick(60)
 
 
 if __name__ == '__main__':
-    game = SpaceInvaders()
+    player = players.DQN()
+    game = SpaceInvaders(player)
     game.main()
