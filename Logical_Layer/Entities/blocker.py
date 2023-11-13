@@ -1,6 +1,6 @@
 from pygame import *
 from Logical_Layer.Viewport.screen_surface import Screen
-from Logical_Layer.Util.collision import Collision
+from Logical_Layer.Util.limit import Limit
 from Logical_Layer.Util.color import Color
 
 class Blocker(sprite.Sprite):
@@ -18,5 +18,5 @@ class Blocker(sprite.Sprite):
 
     # Overrides the Update method which is responsible for displaying elements on the screen
     def update(self, keys, *args):
-        Collision.detectionBorders(self.rect, self.screen, Color.WHITE)
+        Limit.bordersCollision(self.rect, self.screen, Color.WHITE)
         self.screen.blit(self.image, self.rect)
