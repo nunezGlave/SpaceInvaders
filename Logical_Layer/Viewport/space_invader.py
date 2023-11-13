@@ -43,15 +43,11 @@ IMG_NAMES = ['ship', 'mystery',
 
 class SpaceInvaders():
     # Parameterized Constructor
-    instanceCount = 0
-    allGameInstances = []
     def __init__(self, scale: int, controlGame: int, gameWindow: Screen, width : float, height: float, leftPos: int = 0, topPos : int = 0):
         # Background sound
         mixer.pre_init(44100, -16, 1, 4096)
-        self.index = SpaceInvaders.instanceCount
-        if self.index == 0:
-            mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play()
-        SpaceInvaders.instanceCount += 1
+        mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play()
+
         # Select the screen dimension and set with a background image
         self.subWindow = gameWindow.surface.subsurface(Rect(leftPos, topPos, width, height))
         self.screen = Screen(self.subWindow)
@@ -103,11 +99,6 @@ class SpaceInvaders():
         self.command_right = False
         self.command_shoot = False
         self.observer = self.determineObserver(controlGame)
-        self.gameSpeed = 1
-        if controlGame == 2:
-            self.gameSpeed = 10
-        SpaceInvaders.allGameInstances.append(self)
-
 
     # Reset objects and variables to start a new game
     def restartGame(self, score: int):
@@ -115,7 +106,7 @@ class SpaceInvaders():
         self.playerGroup = sprite.Group(self.player)
         self.explosionsGroup = sprite.Group()
         self.bullets = sprite.Group()
-        self.mysteryShip = Mystery(self.screen, self.MISTERY, -100*self.gameSpeed, self.scoreText.textHeight)
+        self.mysteryShip = Mystery(self.screen, self.MISTERY, -100, self.scoreText.textHeight)
         self.mysteryGroup = sprite.Group(self.mysteryShip)
         self.enemyBullets = sprite.Group()
         self.make_enemies()
@@ -132,9 +123,7 @@ class SpaceInvaders():
 
     # Run the game
     def main(self):
-
         if self.mainScreen:
-
             self.subWindow.blit(self.background, (0, 0))
             self.titleText.draw(self.subWindow)
             self.titleText2.draw(self.subWindow)
@@ -143,18 +132,16 @@ class SpaceInvaders():
             self.enemy3Text.draw(self.subWindow)
             self.enemy4Text.draw(self.subWindow)
             self.create_main_menu()
-
             for e in event.get():
-
                 if self.should_exit(e):
                     sys.exit()
                 if e.type == KEYUP:
-                    for games in SpaceInvaders.allGameInstances:
-                        games.make_group_blockers(6)
-                        games.livesGroup.add(self.life1, self.life2, self.life3)
-                        games.restartGame(0)
-                        games.startGame = True
-                        games.mainScreen = False
+                    # Only create blockes on a new game, not a new round
+                    self.make_group_blockers(6)
+                    self.livesGroup.add(self.life1, self.life2, self.life3)
+                    self.restartGame(0)
+                    self.startGame = True
+                    self.mainScreen = False
 
         elif self.startGame:
             if not self.enemies and not self.explosionsGroup:
@@ -173,9 +160,8 @@ class SpaceInvaders():
                     self.restartGame(self.score)
                     self.gameTimer += 3000
             else:
-                currentTime = time.get_ticks()*self.gameSpeed
-
-               # self.play_main_music(currentTime)
+                currentTime = time.get_ticks()
+                self.play_main_music(currentTime)
                 self.subWindow.blit(self.background, (0, 0))
                 self.allBlockers.update(self.subWindow)
                 self.scoreNumber = Text(str(self.score), FONT, self.scoreText.size + 2, Color.GREEN, self.scoreText.textWidth + 12, self.scoreText.yPos - 1)
@@ -192,7 +178,6 @@ class SpaceInvaders():
                 self.observer.update(self.player.rect.x, self.enemies, self.bullets)
 
         elif self.gameOver:
-            self.observer.end_game(self.score)
             currentTime = time.get_ticks()
             self.groupEnemyPosition = self.Enemy_DEFAULT_POSITION             # Reset enemy starting position
             self.create_game_over(currentTime)
@@ -259,13 +244,6 @@ class SpaceInvaders():
             self.command_right = True
         elif command == "shoot":
             self.command_shoot = True
-        elif command == "reset":
-            for games in SpaceInvaders.allGameInstances:
-                games.make_group_blockers(6)
-                games.livesGroup.add(self.life1, self.life2, self.life3)
-                games.restartGame(0)
-                games.startGame = True
-                games.mainScreen = False
 
     # Check the input handle the ship limits and movement
     def check_input_player(self):
@@ -417,7 +395,7 @@ class SpaceInvaders():
             self.sounds['mysterykilled'].play()
             score = self.calculate_score(mystery.row)
             MysteryExplosion(self.screen, mystery, score, self.explosionsGroup)
-            mysteryShip = Mystery(self.screen, self.MISTERY, -100 * self.gameSpeed, self.scoreText.textHeight)
+            mysteryShip = Mystery(self.screen, self.MISTERY, -100, self.scoreText.textHeight)
             self.allSprites.add(mysteryShip)
             self.mysteryGroup.add(mysteryShip)
 
@@ -485,5 +463,4 @@ class SpaceInvaders():
 
     @staticmethod
     def should_exit(evt):
-        # type: (pygame.event.EventType) -> bool
-        return evt.type == QUIT or (evt.type == KEYUP and evt.key == K_ESCAPE)
+        return evt.type == QUIT or (evt.type == KEYUP and evt.key == K_ESCAPE)         # type: (pygame.event.EventType) -> bool

@@ -2,30 +2,27 @@ from Logical_Layer.Interfaces.scale import Scale
 from pygame import *
 
 class ImageScale(Scale):
-    def __init__(self, scaleType: int, image, size: int):
+    def __init__(self, scaleType: int, image: Surface, sizeWidth: int, sizeHeight: int, scaleFactor : float = 0.75): 
         super().__init__(scaleType)
-        self.originalSize = size
-        self.originalImage = image
-        self.scaleSize = self.newSize()
-        self.scaleImage = self.newImage() if type(image) is not dict else None
-        # print("newSize: ", self.scaleSize)
-        # print("scaleImage: ", self.scaleImage)
-
-    def newSize(self):
+        self.scaleFactor = 0.75 if scaleFactor > 1 or scaleFactor < 0.6 else scaleFactor
+        self.givenImage = image             
+        self.originalWidth = sizeWidth          
+        self.originalHeight = sizeHeight
+        self.scaleWidth = self.newSize(sizeWidth)  
+        self.scaleHeight = self.newSize(sizeHeight)    
+        self.scaleImage = self.newImage()
+        
+    def newSize(self, size: int):
         match super().scaleNumber:
             case 2:
-                newSize = self.originalSize * 0.7         # 20% less than the original size
+                newSize = size * self.scaleFactor         # scaleFactor reduces the size by a given percentage
             case 3:
-                sizeType2 = self.originalSize * 0.7       # 20% less than the original size
-                newSize = sizeType2 * 0.8                 # 20% less than the second type's size
+                secondSize = size * self.scaleFactor      # Second type's size
+                newSize = secondSize * self.scaleFactor   # A percentage less than the second type's size
             case _:
-                newSize = self.originalSize               # type 1 or unspecified remains the same size
+                newSize = size                       # type 1 or unspecified remains the same size
         
         return int(newSize)
 
     def newImage(self):
-        return self.scale(self.originalImage, self.scaleSize, self.scaleSize)
-    
-    @classmethod
-    def scale(cls, image: Surface, wSize: int, hSize: int):
-        return transform.scale(image, (wSize, hSize))
+        return transform.scale(self.givenImage, (self.scaleWidth, self.scaleHeight))

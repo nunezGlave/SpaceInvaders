@@ -5,12 +5,15 @@ from Logical_Layer.Entities.enemy import Enemy
 
 class EnemyExplosion(sprite.Sprite):
     # Parameterized Constructor
-    def __init__(self, gameScreen: Screen, enemy: Enemy, *groups):
+    def __init__(self, gameScreen: Screen, scale: int, enemy: Enemy, *groups):
         super(EnemyExplosion, self).__init__(*groups)
         self.screen = gameScreen.surface        
-        self.listImages = enemy.listImages
-        self.image = ImageScale.scale(self.get_image(enemy.row), enemy.size, enemy.size - 5)
-        self.image2 = ImageScale.scale(self.get_image(enemy.row), enemy.size, enemy.size - 5)
+        self.listImages = enemy.dictImages
+        self.image = ImageScale(scale, self.get_image(enemy.row), enemy.scale.originalWidth, enemy.scale.originalHeight)
+        self.image2 = ImageScale(scale, self.get_image(enemy.row), enemy.scale.originalWidth, enemy.scale.originalHeight)
+        self.image = self.image.scaleImage
+        self.image2 = self.image2.scaleImage
+
         self.rect = self.image.get_rect(topleft=(enemy.rect.x, enemy.rect.y))
         self.timer = time.get_ticks()
 

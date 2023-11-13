@@ -1,7 +1,7 @@
 from pygame import *
 from Logical_Layer.Viewport.image_scale import ImageScale
 from Logical_Layer.Viewport.screen_surface import Screen
-from Logical_Layer.Util.collision import Collision
+from Logical_Layer.Util.limit import Limit
 from Logical_Layer.Util.color import Color
 
 class Ship(sprite.Sprite):
@@ -10,7 +10,7 @@ class Ship(sprite.Sprite):
         sprite.Sprite.__init__(self)                             # Initialize the superclass constructor
         self.screen = gameScreen.surface                         # Screen where the content will be drawn
         self.image = image.scaleImage                            # Scaled Image
-        self.size = image.scaleSize                              # Image's size
+        self.size = image.scaleWidth                             # Image's size
         self.speed = 5                                           # Speed of movement
         if positionX != 0:
             self.xPos = positionX                                # Specified x-axis position
@@ -27,6 +27,6 @@ class Ship(sprite.Sprite):
 
     # Overrides the update method of the Sprite class
     def update(self, keys, *args):
-        Collision.detectionBorders(self.rect, self.screen, Color.YELLOW)
+        Limit.bordersCollision(self.rect, self.screen, Color.YELLOW)
         self.screen.blit(self.image, self.rect)                 # Display image on the screen
 

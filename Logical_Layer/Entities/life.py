@@ -8,7 +8,7 @@ class Life(sprite.Sprite):
         sprite.Sprite.__init__(self)
         self.screen = gameScreen.surface
         self.image = image.scaleImage
-        self.size = image.scaleSize
+        self.size = image.scaleWidth
         self.rect = self.image.get_rect(topleft=(xPos, yPos))
         self.posX =  xPos
         self.posY = yPos
