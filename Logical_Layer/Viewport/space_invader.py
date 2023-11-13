@@ -11,7 +11,6 @@ from Logical_Layer.Viewport.text_scale import TextScale
 from Logical_Layer.Util.color import Color
 from Logical_Layer.Util.align import Align
 from Logical_Layer.Util.text import Text
-from Logical_Layer.Util.limit import Limit
 from Logical_Layer.Entities.life import Life
 from Logical_Layer.Entities.ship import Ship
 from Logical_Layer.Entities.enemy import Enemy
@@ -43,34 +42,34 @@ IMG_NAMES = ['ship', 'mystery',
              'laser', 'enemy_laser', 'life']
 
 class SpaceInvaders():
-    gameCount = 0
-
     # Parameterized Constructor
+    instanceCount = 0
+    allGameInstances = []
     def __init__(self, scale: int, controlGame: int, gameWindow: Screen, width : float, height: float, leftPos: int = 0, topPos : int = 0):
-        # Initialize mixer instance and count game instance
-        SpaceInvaders.gameCount += 1
-        self.instanceCount = SpaceInvaders.gameCount        
+        # Background sound
         mixer.pre_init(44100, -16, 1, 4096)
-        
-        # Play background sound
-        if self.instanceCount == 1:
-            mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play(-1)
-
+        self.index = SpaceInvaders.instanceCount
+        if self.index == 0:
+            mixer.Sound(SOUND_PATH + 'd_e1m1.wav').play()
+        SpaceInvaders.instanceCount += 1
         # Select the screen dimension and set with a background image
-        self.screenSurface = gameWindow.surface.subsurface(Rect(leftPos, topPos, width, height))
-        self.screen = Screen(self.screenSurface)
+        self.subWindow = gameWindow.surface.subsurface(Rect(leftPos, topPos, width, height))
+        self.screen = Screen(self.subWindow)
         self.background = image.load(IMAGE_PATH + 'background.jpg').convert()
-        self.background = transform.scale(self.background, (width, height))
+        self.background = ImageScale.scale(self.background, width, height)
         self.scale = scale
+
         self.images = {name: image.load(IMAGE_PATH + '{}.png'.format(name)).convert_alpha() for name in IMG_NAMES}
+        scaleBlock = { 1: 0.77, 2: 0.81, 3: 0.75 } 
     
-        # Create scaling objects for images and text
-        self.SHIP = ImageScale(self.scale, self.images['ship'], 70, 70)
-        self.LIFE = ImageScale(self.scale, self.images['life'], 40, 40)
-        self.MISTERY = ImageScale(self.scale, self.images['mystery'], 95, 70)
+        # Create scaling objects for images, text, and positions
+        self.SHIP = ImageScale(self.scale, self.images['ship'], 70)
+        self.LIFE = ImageScale(self.scale, self.images['life'], 40)
+        self.ENEMY = ImageScale(self.scale, self.images, 70)
+        self.MISTERY = ImageScale(self.scale, self.images, 95)
         self.TextMenu = TextScale(self.scale, 70)
 
-        # Create menu's text that will be used on the screen
+        # Create texts that will be used on the screen
         self.titleText = Text('Doom Invaders', FONT, self.TextMenu.scaleSize, Color.WHITE, self.screen.halfWidth, self.screen.heightP(20), Align.CENTER)      
         self.titleText2 = Text('Press any key to continue', FONT, self.titleText.size - 30, Color.WHITE, self.screen.halfWidth, self.titleText.textHeight, Align.CENTER)     
         self.enemy1Text = Text('   =   10 pts', FONT, self.titleText2.size, Color.GREEN, self.screen.halfWidth, self.titleText2.textHeight + 20)                 
@@ -81,20 +80,21 @@ class SpaceInvaders():
         self.nextRoundText = Text('Next Round', FONT, self.gameOverText.size, Color.WHITE, self.screen.widthP(50), self.screen.heightP(35), Align.CENTER)    
 
         # Create player lives and group them
-        self.life1 = Life(self.screen, self.LIFE, self.screen.width - self.LIFE.scaleWidth - 12, 5)
-        self.life2 = Life(self.screen, self.LIFE, self.life1.posX - self.LIFE.scaleWidth - 8, self.life1.posY)
-        self.life3 = Life(self.screen, self.LIFE, self.life2.posX - self.LIFE.scaleWidth - 8, self.life2.posY)        
+        self.life1 = Life(self.screen, self.LIFE, self.screen.width - self.LIFE.scaleSize - 12, 5)
+        self.life2 = Life(self.screen, self.LIFE, self.life1.posX - self.LIFE.scaleSize - 8, self.life1.posY)
+        self.life3 = Life(self.screen, self.LIFE, self.life2.posX - self.LIFE.scaleSize - 8, self.life2.posY)        
         self.livesGroup = sprite.Group(self.life3, self.life2, self.life1)
         
-        # Create game's HUB
         self.ScoreTextW = TextScale.scaleWidth('Lives', FONT, self.titleText.size - 30)
         self.scoreText = Text('Score', FONT, self.titleText.size - 30, Color.WHITE, self.screen.widthP(2), 5)
         self.livesText = Text('Lives ', FONT, self.scoreText.size, Color.WHITE, self.life3.posX - self.ScoreTextW - 10, 3)
 
-        # Determine the initial position of the group of enemies
-        self.Enemy_DEFAULT_POSITION = self.scoreText.textHeight + 15
+        scaleEnemyPosition = { 1: self.scoreText.textHeight + (self.MISTERY.scaleSize // 2), 2: 140, 3: 58}
+        self.ENEMY_MOVE_DOWN = 35
+        self.Enemy_DEFAULT_POSITION = scaleEnemyPosition[scale]
+        self.BLOCKER_POSITION = int(self.screen.height * scaleBlock[scale])
         self.groupEnemyPosition = self.Enemy_DEFAULT_POSITION
-        
+
         # Control of game states and selection of the type of player as well as its mobility
         self.startGame = False
         self.mainScreen = True
@@ -103,19 +103,25 @@ class SpaceInvaders():
         self.command_right = False
         self.command_shoot = False
         self.observer = self.determineObserver(controlGame)
+        self.gameSpeed = 1
+        if controlGame == 2:
+            self.gameSpeed = 10
+        SpaceInvaders.allGameInstances.append(self)
+
 
     # Reset objects and variables to start a new game
     def restartGame(self, score: int):
-        self.make_enemies()
         self.player = Ship(self.screen, self.SHIP)
         self.playerGroup = sprite.Group(self.player)
         self.explosionsGroup = sprite.Group()
         self.bullets = sprite.Group()
-        self.mysteryShip = Mystery(self.screen, self.MISTERY, self.enemies, -100, self.scoreText.textHeight)
+        self.mysteryShip = Mystery(self.screen, self.MISTERY, -100*self.gameSpeed, self.scoreText.textHeight)
         self.mysteryGroup = sprite.Group(self.mysteryShip)
         self.enemyBullets = sprite.Group()
+        self.make_enemies()
         self.allSprites = sprite.Group(self.player, self.enemies, self.livesGroup, self.mysteryShip)
         self.keys = key.get_pressed()
+
         self.timer = time.get_ticks()
         self.noteTimer = time.get_ticks()
         self.shipTimer = time.get_ticks()
@@ -126,52 +132,56 @@ class SpaceInvaders():
 
     # Run the game
     def main(self):
+
         if self.mainScreen:
-            self.screenSurface.blit(self.background, (0, 0))
-            self.titleText.draw(self.screenSurface)
-            self.titleText2.draw(self.screenSurface)
-            self.enemy1Text.draw(self.screenSurface)
-            self.enemy2Text.draw(self.screenSurface)
-            self.enemy3Text.draw(self.screenSurface)
-            self.enemy4Text.draw(self.screenSurface)
+
+            self.subWindow.blit(self.background, (0, 0))
+            self.titleText.draw(self.subWindow)
+            self.titleText2.draw(self.subWindow)
+            self.enemy1Text.draw(self.subWindow)
+            self.enemy2Text.draw(self.subWindow)
+            self.enemy3Text.draw(self.subWindow)
+            self.enemy4Text.draw(self.subWindow)
             self.create_main_menu()
+
             for e in event.get():
+
                 if self.should_exit(e):
                     sys.exit()
                 if e.type == KEYUP:
-                    # Only create blockes on a new game, not a new round
-                    self.make_group_blockers(6)
-                    self.livesGroup.add(self.life1, self.life2, self.life3)
-                    self.restartGame(0)
-                    self.startGame = True
-                    self.mainScreen = False
+                    for games in SpaceInvaders.allGameInstances:
+                        games.make_group_blockers(6)
+                        games.livesGroup.add(self.life1, self.life2, self.life3)
+                        games.restartGame(0)
+                        games.startGame = True
+                        games.mainScreen = False
 
         elif self.startGame:
             if not self.enemies and not self.explosionsGroup:
                 currentTime = time.get_ticks()
                 if currentTime - self.gameTimer < 3000:
-                    self.screenSurface.blit(self.background, (0, 0))
+                    self.subWindow.blit(self.background, (0, 0))
                     self.scoreNumber = Text(str(self.score), FONT, self.scoreText.size + 2, Color.GREEN, self.scoreText.textWidth + 12, self.scoreText.yPos - 1)
-                    self.scoreText.draw(self.screenSurface)
-                    self.scoreNumber.draw(self.screenSurface)
-                    self.nextRoundText.draw(self.screenSurface)
-                    self.livesText.draw(self.screenSurface)
+                    self.scoreText.draw(self.subWindow)
+                    self.scoreNumber.draw(self.subWindow)
+                    self.nextRoundText.draw(self.subWindow)
+                    self.livesText.draw(self.subWindow)
                     self.livesGroup.update()
                     self.check_input_player()
                 if currentTime - self.gameTimer > 3000:
+                    self.groupEnemyPosition += self.ENEMY_MOVE_DOWN    # Move enemies closer to bottom
                     self.restartGame(self.score)
-                    self.groupEnemyPosition += self.enemies.verticalVelocity    # Move enemies closer to bottom
                     self.gameTimer += 3000
             else:
-                currentTime = time.get_ticks()
-                self.play_main_music(currentTime)
-                    
-                self.screenSurface.blit(self.background, (0, 0))
-                self.allBlockers.update(self.screenSurface)
+                currentTime = time.get_ticks()*self.gameSpeed
+
+               # self.play_main_music(currentTime)
+                self.subWindow.blit(self.background, (0, 0))
+                self.allBlockers.update(self.subWindow)
                 self.scoreNumber = Text(str(self.score), FONT, self.scoreText.size + 2, Color.GREEN, self.scoreText.textWidth + 12, self.scoreText.yPos - 1)
-                self.scoreText.draw(self.screenSurface)
-                self.scoreNumber.draw(self.screenSurface)
-                self.livesText.draw(self.screenSurface)
+                self.scoreText.draw(self.subWindow)
+                self.scoreNumber.draw(self.subWindow)
+                self.livesText.draw(self.subWindow)
                 self.check_input_player()
                 self.enemies.update(currentTime)
                 self.allSprites.update(self.keys, currentTime)
@@ -182,39 +192,44 @@ class SpaceInvaders():
                 self.observer.update(self.player.rect.x, self.enemies, self.bullets)
 
         elif self.gameOver:
+            self.observer.end_game(self.score)
             currentTime = time.get_ticks()
-            self.groupEnemyPosition = self.Enemy_DEFAULT_POSITION   # Reset enemy starting position
+            self.groupEnemyPosition = self.Enemy_DEFAULT_POSITION             # Reset enemy starting position
             self.create_game_over(currentTime)
 
     # Temporary menu for the game
     def create_main_menu(self):
-        # Rescale image
-        scaleFactor = 0.84
-        self.enemy1 = ImageScale(self.scale, self.images['enemy3_1'], 75, 62, scaleFactor)
-        self.enemy2 = ImageScale(self.scale, self.images['enemy2_2'], 60, 60, scaleFactor)
-        self.enemy3 = ImageScale(self.scale, self.images['enemy1_2'], 60, 60, scaleFactor)
-        self.enemy4 = ImageScale(self.scale, self.images['mystery'], 100, 60, scaleFactor)
+        scaleImage = { 1: 60, 2: 50, 3: 40}
+        size = scaleImage[self.scale]
 
-        # Display image on the screen
+        self.enemy1 = self.images['enemy3_1']
+        self.enemy1 = transform.scale(self.enemy1, (size, size))
+        self.enemy2 = self.images['enemy2_2']
+        self.enemy2 = transform.scale(self.enemy2, (size, size))
+        self.enemy3 = self.images['enemy1_2']
+        self.enemy3 = transform.scale(self.enemy3, (size, size))
+        self.enemy4 = self.images['mystery']
+        self.enemy4 = transform.scale(self.enemy4, (size + 40, size))
+
         moveLeft = 70
         moveUp = 10
-        self.screenSurface.blit(self.enemy1.scaleImage, (self.enemy1Text.xPos - moveLeft - 6, self.enemy1Text.yPos - moveUp))
-        self.screenSurface.blit(self.enemy2.scaleImage, (self.enemy1Text.xPos - moveLeft, self.enemy2Text.yPos - moveUp))
-        self.screenSurface.blit(self.enemy3.scaleImage, (self.enemy1Text.xPos - moveLeft, self.enemy3Text.yPos - moveUp))
-        self.screenSurface.blit(self.enemy4.scaleImage, (self.enemy1Text.xPos - moveLeft - 20, self.enemy4Text.yPos - moveUp + 5))
+        self.subWindow.blit(self.enemy1, (self.enemy1Text.xPos - moveLeft, self.enemy1Text.yPos - moveUp))
+        self.subWindow.blit(self.enemy2, (self.enemy1Text.xPos - moveLeft, self.enemy2Text.yPos - moveUp))
+        self.subWindow.blit(self.enemy3, (self.enemy1Text.xPos - moveLeft, self.enemy3Text.yPos - moveUp))
+        self.subWindow.blit(self.enemy4, (self.enemy1Text.xPos - moveLeft - 20, self.enemy4Text.yPos - moveUp + 5))
 
     # Game over meny
     def create_game_over(self, currentTime):
-        self.screenSurface.blit(self.background, (0, 0))
+        self.subWindow.blit(self.background, (0, 0))
         passed = currentTime - self.timer
         if passed < 750:
-            self.gameOverText.draw(self.screenSurface)
+            self.gameOverText.draw(self.subWindow)
         elif 750 < passed < 1500:
-            self.screenSurface.blit(self.background, (0, 0))
+            self.subWindow.blit(self.background, (0, 0))
         elif 1500 < passed < 2250:
-            self.gameOverText.draw(self.screenSurface)
+            self.gameOverText.draw(self.subWindow)
         elif 2250 < passed < 2750:
-            self.screenSurface.blit(self.background, (0, 0))
+            self.subWindow.blit(self.background, (0, 0))
         elif passed > 3000:
             self.mainScreen = True
 
@@ -244,27 +259,26 @@ class SpaceInvaders():
             self.command_right = True
         elif command == "shoot":
             self.command_shoot = True
+        elif command == "reset":
+            for games in SpaceInvaders.allGameInstances:
+                games.make_group_blockers(6)
+                games.livesGroup.add(self.life1, self.life2, self.life3)
+                games.restartGame(0)
+                games.startGame = True
+                games.mainScreen = False
 
     # Check the input handle the ship limits and movement
     def check_input_player(self):
-        # Determine ship's limit
-        leftLimit = 10
-        rightLimit = self.screen.width - 10
-
-        # Draw boundaries of the player's ship
-        Limit.verticalBorders(self.screen, Color.PURPLE, leftLimit, rightLimit)
-
-        # Evaluate limits and movement of the ship 
         self.keys = key.get_pressed()
         for e in event.get():
             if self.should_exit(e):
                 sys.exit()
         if self.command_left:
-            if self.player.rect.left > leftLimit:
+            if self.player.rect.x > 10:
                 self.player.rect.x -= self.player.speed
             self.command_left = False
         if self.command_right:
-            if self.player.rect.right < rightLimit: 
+            if self.player.rect.x < (self.screen.width - self.SHIP.scaleSize - 10): 
                 self.player.rect.x += self.player.speed
             self.command_right = False
         if self.command_shoot:
@@ -283,6 +297,44 @@ class SpaceInvaders():
                     self.sounds['shoot2'].play()
             self.command_shoot = False
 
+    # Create a block made up of individual squares
+    def make_blockers(self, number, totalGroups):
+        # Number of blocks in rows and columns
+        rows = 4
+        columns = 9
+
+        # Determine the size of the block based on the scale parameter
+        scaleBlocks = [16, 10, 5]
+        size = scaleBlocks[self.scale - 1]
+
+        # Determine the position of the first block
+        positionBlock = self.screen.width // totalGroups
+
+        # Space between the left wall towards the first block
+        if number > 1:
+            leftSpace = positionBlock // 4  # This is divided by four to calculate 20% of the initial position of the block
+        else:
+            halfScreenWidth = positionBlock // 2                # Get half screen
+            blockWidth = (columns - 1) * size                   # Get the width of the entire block
+            leftSpace =  halfScreenWidth - (blockWidth // 2.5)  # Position the entire block in the middle of the screen
+
+        # Add small piece of a block to form a complete block
+        blockerGroup = sprite.Group()
+        for row in range(rows):
+            for column in range(columns):
+                blocker = Blocker(self.screen, size, Color.GREEN, row, column)
+                
+                # Represents the position on the x-axis
+                blocker.rect.x =  leftSpace + (positionBlock * number) + (column * blocker.width) 
+
+                # Represents the position on the y-axis
+                blocker.rect.y =  self.BLOCKER_POSITION + (row * blocker.height)
+
+                # Add blocker to the group
+                blockerGroup.add(blocker)
+
+        return blockerGroup
+
     # Create an 'N' number of blocks
     def make_group_blockers(self, numberGroups: int):
         # Limit the number of blockers' group
@@ -294,50 +346,6 @@ class SpaceInvaders():
         for number in range(numberGroups):
             self.allBlockers.add(self.make_blockers(number, numberGroups))
 
-    # Create a block made up of individual squares
-    def make_blockers(self, number, totalGroups):
-        # Number of blocks in rows and columns
-        rows = 4
-        columns = 9
-
-        # Determine the size of the block based on the scale parameter
-        scaleBlocks = [16, 10, 7]
-        size = scaleBlocks[self.scale - 1]
-
-        # Determine the position of the blocks on the y-axis
-        blockHeight = size * rows
-        shipHeight = self.SHIP.scaleHeight
-        spaceShipBlock = 50
-        self.blockerPosition = self.screen.height - blockHeight - shipHeight - spaceShipBlock
-
-        # Determine the position of the first block on the x-axis
-        positionBlock = self.screen.width // totalGroups
-
-        # Space between the left wall towards the first block
-        if totalGroups > 1:
-            leftSpace = positionBlock // 4                             # Space will be a quarter of the position of the first block
-        else:
-            blockWidth = columns * size                                # Get the width of the entire block
-            leftSpace =  self.screen.halfWidth  - (blockWidth / 2)     # Position the entire block in the middle of the screen
-
-        # Add small piece of a block to form a complete block
-        blockerGroup = sprite.Group()
-        for row in range(rows):
-            for column in range(columns):
-                # Create an individual block
-                blocker = Blocker(self.screen, size, Color.GREEN, row, column)
-                
-                # Draw the individual block in its x-axis position.
-                blocker.rect.x =  leftSpace + (positionBlock * number) + (column * blocker.width) 
-
-                # Draw the individual block in its y-axis position.
-                blocker.rect.y =  self.blockerPosition + (row * blocker.height)
-
-                # Add blocker to the group
-                blockerGroup.add(blocker)
-
-        return blockerGroup
-
     # Create a group of enemies
     def make_enemies(self):
         # Extra space between images
@@ -348,16 +356,14 @@ class SpaceInvaders():
         enemyRows = 5
         
         # Create group of enemies
-        enemySize = ImageScale(self.scale, self.images['enemy1_1'], 70, 65, 0.72)
-        enemySpace =  enemySize.scaleHeight + 8                              # Image height + Extra Space
-        enemies = EnemiesGroup(self.groupEnemyPosition, enemySpace, self.screen, enemyColumns, enemyRows)
+        enemies = EnemiesGroup(self.groupEnemyPosition, self.ENEMY_MOVE_DOWN, self.ENEMY.scaleSize, self.screen.width, enemyColumns, enemyRows)
         leftSpace = self.screen.widthP(10)   # A left space of the windows
 
         for row in range(enemyRows):
             for column in range(enemyColumns):
-                enemy = Enemy(self.screen, self.scale, self.images, enemySize, row, column)
-                enemy.rect.x = leftSpace + (column * (enemy.scale.scaleWidth + self.extraSpace[self.scale]))   # LeftSpace + Image width + Extra Space
-                enemy.rect.y = self.groupEnemyPosition + (row * enemySpace)                                    # Enemy position + Enemy space
+                enemy = Enemy(self.screen, self.ENEMY, row, column)
+                enemy.rect.x = leftSpace + (column * (self.ENEMY.scaleSize + self.extraSpace[self.scale]))  # LeftSpace + Image width + Extra Space
+                enemy.rect.y = self.groupEnemyPosition + (row * (self.ENEMY.scaleSize + 8))                 # Enemy position + Image height + Extra Space
                 enemies.add(enemy)
 
         self.enemies = enemies
@@ -402,7 +408,7 @@ class SpaceInvaders():
         for enemy in sprite.groupcollide(self.enemies, self.bullets, True, True).keys():
             self.sounds['invaderkilled'].play()
             self.calculate_score(enemy.row)
-            EnemyExplosion(self.screen, self.scale, enemy, self.explosionsGroup)
+            EnemyExplosion(self.screen, enemy, self.explosionsGroup)
             self.gameTimer = time.get_ticks()
 
         # Detect collision of Mystery enemy and ship's bullets
@@ -411,7 +417,7 @@ class SpaceInvaders():
             self.sounds['mysterykilled'].play()
             score = self.calculate_score(mystery.row)
             MysteryExplosion(self.screen, mystery, score, self.explosionsGroup)
-            mysteryShip = Mystery(self.screen, self.MISTERY, self.enemies, -100, self.scoreText.textHeight)
+            mysteryShip = Mystery(self.screen, self.MISTERY, -100 * self.gameSpeed, self.scoreText.textHeight)
             self.allSprites.add(mysteryShip)
             self.mysteryGroup.add(mysteryShip)
 
@@ -434,15 +440,14 @@ class SpaceInvaders():
 
         # Determine the collision of enemies with the ship
         heightBound = self.screen.heightP(90)
-        Limit.horizontalBorder(self.screen, Color.WHITE, heightBound)
-        if self.enemies.collisionLimit >= heightBound:
+        if self.enemies.collisionVertLimit >= heightBound:
             sprite.groupcollide(self.enemies, self.playerGroup, True, True)
-            if not self.player.alive() or self.enemies.collisionLimit >= self.screen.height:
+            if not self.player.alive() or self.enemies.collisionVertLimit >= self.screen.height:
                 self.gameOver = True
                 self.startGame = False
 
         # Determine the collision of the enemies with the blocks
-        if self.enemies.collisionLimit >= self.blockerPosition:
+        if self.enemies.collisionVertLimit >= self.BLOCKER_POSITION:
             sprite.groupcollide(self.enemies, self.allBlockers, False, True)
 
         # Determine the collision of the ship's bullets and the blocks
@@ -451,17 +456,21 @@ class SpaceInvaders():
         # Determine the collision of the enemy's bullets and the blocks
         sprite.groupcollide(self.enemyBullets, self.allBlockers, True, True)  
 
+
     def create_audio(self):
         self.sounds = {}
-        for sound_name in ['shoot', 'shoot2', 'invaderkilled', 'mysterykilled','shipexplosion']:
+        for sound_name in ['shoot', 'shoot2', 'invaderkilled', 'mysterykilled',
+                           'shipexplosion']:
             self.sounds[sound_name] = mixer.Sound(SOUND_PATH + '{}.wav'.format(sound_name))
             self.sounds[sound_name].set_volume(0.2)
 
-        self.musicNotes = [mixer.Sound(SOUND_PATH + '{}.wav'.format(i)) for i in range(4)]
+        self.musicNotes = [mixer.Sound(SOUND_PATH + '{}.wav'.format(i)) for i
+                           in range(4)]
         for sound in self.musicNotes:
             sound.set_volume(0.5)
 
         self.noteIndex = 0
+
 
     def play_main_music(self, currentTime):
         if currentTime - self.noteTimer > self.enemies.moveTime:
@@ -476,4 +485,5 @@ class SpaceInvaders():
 
     @staticmethod
     def should_exit(evt):
-        return evt.type == QUIT or (evt.type == KEYUP and evt.key == K_ESCAPE)         # type: (pygame.event.EventType) -> bool
+        # type: (pygame.event.EventType) -> bool
+        return evt.type == QUIT or (evt.type == KEYUP and evt.key == K_ESCAPE)
