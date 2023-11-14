@@ -1,17 +1,23 @@
 from pygame import *
+from Logical_Layer.Viewport.image_scale import ImageScale
+from Logical_Layer.Viewport.screen_surface import Screen
 from Logical_Layer.Entities.enemy import Enemy
+from Logical_Layer.Util.limit import Limit
+from Logical_Layer.Util.color import Color
 from random import choice
 
 class EnemiesGroup(sprite.Group):
     # Parameterized Constructor
-    def __init__(self, enemyPosition: int, enemyMove: int, enemySize: int , width: int, columns: int, rows: int):
+    def __init__(self, enemyPosition: int, enemySpace: int, screen: Screen, columns: int, rows: int):
         sprite.Group.__init__(self)
         self.enemies = [[None] * columns for _ in range(rows)]
         self.columns = columns
         self.rows = rows
-        self.width = width
-        self.collisionVertLimit = enemyPosition + ((rows - 1) * (enemySize + 8)) + 35
-        self.enemyMove = enemyMove
+        self.screen = screen
+        self.width = self.screen.width
+        self.collisionLimit = enemyPosition + (rows * enemySpace)    # The enemy's point where it will begin to collide with other entities
+        self.verticalVelocity = 35
+        self.horizontalVelocity = 10
 
         self._aliveColumns = list(range(columns))
         self._aliveRows = list(range(rows))  
@@ -19,54 +25,63 @@ class EnemiesGroup(sprite.Group):
         self._rightAliveColumn = columns - 1
         self.moveTime = 600
         self.timer = time.get_ticks()
-        self.horizMovement = True            # Horizontal Movement -> True: Move to the right | False: Move to the left
-        self.vertMovement = False            # Vertical Movement -> True: Move down | False: Don't move down
-        self.horzLimit = 25                  # The horizontal limit where the group must stop
+        self.horizMovement = True               # Horizontal Movement -> True: Move to the right | False: Move to the left
+        self.vertMovement = False               # Vertical Movement -> True: Move down | False: Do not move down
+        self.leftLimit = 25                     # The left boundary where the group must stop
+        self.rightLimit = self.width - 25       # The right boundary where the group must stop
 
     # Overrides the Update method which is responsible for displaying elements on the screen
     def update(self, current_time):
+        # Show vertical boundaries and horizontal collision boundary
+        Limit.verticalBorders(self.screen, Color.YELLOW, self.leftLimit, self.rightLimit)
+        Limit.horizontalBorder(self.screen, Color.LIGHT_BLUE, self.collisionLimit)
+
         # Conditional that is true when the time is greather than moveTime (600) milliseconds. 
         # This conditional allows to refresh the enemy sprites to create a animation movement effect.
         if current_time - self.timer > self.moveTime:
-            if self.vertMovement:
+            if self.vertMovement:                                    # Vertical movement
                 # Toggle all sprites and move them down
                 enemy : Enemy
                 for enemy in self:
-                    enemy.rect.y += self.enemyMove
+                    enemy.rect.y += self.verticalVelocity
                     enemy.toggle_image()
 
                 # Determine the lower collision point
                 numberSprites = len(self)
                 if numberSprites > 0:
                     lastRowEnemy = self.sprites()[numberSprites - 1]
-                    self.collisionVertLimit = lastRowEnemy.rect.bottom + self.enemyMove
+                    self.collisionLimit = lastRowEnemy.rect.bottom + self.verticalVelocity
                 
                 # Stop vertical movement
                 self.vertMovement = False
-            else:
-                velocity = 10 if self.horizMovement else -10
+            else:                                                   # Horizontal movement
+                # Determines the direction of horizontal movement
+                horzVelocity = self.horizontalVelocity if self.horizMovement else self.horizontalVelocity * -1
                 for enemy in self:
-                    enemy.rect.x += velocity
+                    enemy.rect.x += horzVelocity
                     enemy.toggle_image()
 
                 # Check if the group reaches the right limit
                 for row in self._aliveRows:
                     enemy = self.enemies[row][self._aliveColumns[-1]]
                     if enemy != None:
-                        if enemy.rect.x >= (self.width - enemy.size - self.horzLimit):
+                        if enemy.rect.right > self.width:
+                            raise Exception('The enemies are outside the width of the screen. Reduces the image size or the scaleFactor of the ImageScale instance.')
+                
+                        if enemy.rect.right >= self.rightLimit:
                             self.horizMovement = False  
                             self.vertMovement = True
                         break
-
+                    
                 # Check if the group reaches the left limit
                 for row in self._aliveRows:
                     enemy = self.enemies[row][self._aliveColumns[0]]
                     if enemy != None:
-                        if enemy.rect.x <= self.horzLimit:
+                        if enemy.rect.left <= self.leftLimit:
                             self.horizMovement = True
                             self.vertMovement = True
                         break
-            
+                    
             # Update timer
             self.timer += self.moveTime
 
