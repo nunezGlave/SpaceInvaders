@@ -378,9 +378,9 @@ class SpaceInvaders():
 
     # Create enemies' shoots in random order
     def make_enemies_shoot(self):
-        if (time.get_ticks()*(self.gameSpeed) - self.timer) > 1000 and self.enemies:
+        if (time.get_ticks()*(self.gameSpeed) - self.timer) > 1500 and self.enemies:
             enemy = self.enemies.random_bottom()
-            self.enemyBullets.add(Bullet(self.screen, enemy.rect.centerx, enemy.rect.centery + 10, 1, 15, self.images['enemy_laser'], 'center'))
+            self.enemyBullets.add(Bullet(self.screen, enemy.rect.centerx, enemy.rect.centery + 10, 1, 5, self.images['enemy_laser'], 'center'))
             self.allSprites.add(self.enemyBullets)
             self.timer = time.get_ticks()*self.gameSpeed
 
@@ -388,7 +388,7 @@ class SpaceInvaders():
     def make_new_ship(self, createShip: bool, currentTime: int, shipCoor: Ship):
         if createShip and (currentTime - self.shipTimer > 900):
             self.makeNewShip = False
-            self.player = Ship(self.screen, self.SHIP, shipCoor.rect.x, shipCoor.rect.y)
+            self.player = Ship(self.screen, self.SHIP, self.screen.width/2, shipCoor.rect.y)
             self.allSprites.add(self.player)
             self.playerGroup.add(self.player)
             self.shipAlive = True
