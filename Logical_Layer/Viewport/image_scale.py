@@ -26,3 +26,7 @@ class ImageScale(Scale):
 
     def newImage(self):
         return transform.scale(self.givenImage, (self.scaleWidth, self.scaleHeight))
+    
+    def draw(self, screen: Surface, xPos: int, yPos: int):
+        self.rect = self.scaleImage.get_rect(topleft=(xPos, yPos)) 
+        screen.blit(self.scaleImage, self.rect)            
