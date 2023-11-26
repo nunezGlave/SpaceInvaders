@@ -119,31 +119,30 @@ class EnemiesGroup(sprite.Group):
         self._rightAliveColumn = columns - 1
 
     def update(self, current_time):
-        if current_time - self.timer > self.moveTime:
-            if self.direction == 1:
-                max_move = self.rightMoves + self.rightAddMove
-            else:
-                max_move = self.leftMoves + self.leftAddMove
+        if self.direction == 1:
+            max_move = self.rightMoves + self.rightAddMove
+        else:
+            max_move = self.leftMoves + self.leftAddMove
 
-            if self.moveNumber >= max_move:
-                self.leftMoves = 30 + self.rightAddMove
-                self.rightMoves = 30 + self.leftAddMove
-                self.direction *= -1
-                self.moveNumber = 0
-                self.bottom = 0
-                for enemy in self:
-                    enemy.rect.y += ENEMY_MOVE_DOWN
-                    enemy.toggle_image()
-                    if self.bottom < enemy.rect.y + 35:
-                        self.bottom = enemy.rect.y + 35
-            else:
-                velocity = 10 if self.direction == 1 else -10
-                for enemy in self:
-                    enemy.rect.x += velocity
-                    enemy.toggle_image()
-                self.moveNumber += 1
+        if self.moveNumber >= max_move:
+            self.leftMoves = 30 + self.rightAddMove
+            self.rightMoves = 30 + self.leftAddMove
+            self.direction *= -1
+            self.moveNumber = 0
+            self.bottom = 0
+            for enemy in self:
+                enemy.rect.y += ENEMY_MOVE_DOWN
+                enemy.toggle_image()
+                if self.bottom < enemy.rect.y + 35:
+                    self.bottom = enemy.rect.y + 35
+        else:
+            velocity = 10 if self.direction == 1 else -10
+            for enemy in self:
+                enemy.rect.x += velocity
+                enemy.toggle_image()
+            self.moveNumber += 1
 
-            self.timer += self.moveTime
+        self.timer += self.moveTime
 
     def return_enemy(self):
         enemy_list = []
@@ -673,7 +672,7 @@ class SpaceInvaders(object):
                 self.enemyPosition = ENEMY_DEFAULT_POSITION
                 self.create_game_over(time.get_ticks())
             display.update()
-            self.clock.tick(60)
+            self.clock.tick(120)
 
 
 if __name__ == '__main__':
