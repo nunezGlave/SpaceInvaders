@@ -27,6 +27,6 @@ class Ship(sprite.Sprite):
 
     # Overrides the update method of the Sprite class
     def update(self, keys, *args):
-        Limit.bordersCollision(self.rect, self.screen, Color.YELLOW)
+        Limit.bordersCollision(self.rect, self.screen, Color.YELLOW1)
         self.screen.blit(self.image, self.rect)                 # Display image on the screen
 

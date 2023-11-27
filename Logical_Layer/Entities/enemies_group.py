@@ -8,7 +8,7 @@ from random import choice
 
 class EnemiesGroup(sprite.Group):
     # Parameterized Constructor
-    def __init__(self, enemyPosition: int, enemySpace: int, screen: Screen, columns: int, rows: int):
+    def __init__(self, enemyPosition: int, enemySpace: int, screen: Screen, columns: int, rows: int, horzVelocity : int):
         sprite.Group.__init__(self)
         self.enemies = [[None] * columns for _ in range(rows)]
         self.columns = columns
@@ -17,7 +17,7 @@ class EnemiesGroup(sprite.Group):
         self.width = self.screen.width
         self.collisionLimit = enemyPosition + (rows * enemySpace)    # The enemy's point where it will begin to collide with other entities
         self.verticalVelocity = 35
-        self.horizontalVelocity = 10
+        self.horizontalVelocity = horzVelocity
 
         self._aliveColumns = list(range(columns))
         self._aliveRows = list(range(rows))  
@@ -33,7 +33,7 @@ class EnemiesGroup(sprite.Group):
     # Overrides the Update method which is responsible for displaying elements on the screen
     def update(self, current_time):
         # Show vertical boundaries and horizontal collision boundary
-        Limit.verticalBorders(self.screen, Color.YELLOW, self.leftLimit, self.rightLimit)
+        Limit.verticalBorders(self.screen, Color.YELLOW1, self.leftLimit, self.rightLimit)
         Limit.horizontalBorder(self.screen, Color.LIGHT_BLUE, self.collisionLimit)
 
         # Conditional that is true when the time is greather than moveTime (600) milliseconds. 

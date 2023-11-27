@@ -34,7 +34,7 @@ class Mystery(sprite.Sprite):
     # Overrides the Update method which is responsible for displaying elements on the screen
     def update(self, keys, currentTime, *args):
         Limit.bordersCollision(self.rect, self.screen, Color.TEAL)
-        Limit.horizontalBorder(self.screenDimension, Color.BLUE, self.rect.bottom)
+        Limit.horizontalBorder(self.screenDimension, Color.BLUE1, self.rect.bottom)
         resetTimer = False
         passed = currentTime - self.timer
 

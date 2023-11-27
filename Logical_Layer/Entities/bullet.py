@@ -17,7 +17,7 @@ class Bullet(sprite.Sprite):
    
     # Overrides the Update method which is responsible for displaying elements on the screen
     def update(self, keys, *args):
-        Limit.bordersCollision(self.rect, self.screen, Color.BLUE)
+        Limit.bordersCollision(self.rect, self.screen, Color.BLUE1)
         self.screen.blit(self.image, self.rect)
         self.rect.y += self.speed * self.direction
         if self.rect.y < 32 or self.rect.y > self.game.height:

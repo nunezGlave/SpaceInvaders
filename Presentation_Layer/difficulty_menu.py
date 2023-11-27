@@ -8,122 +8,106 @@ from pygame import *
 from Logical_Layer.Interfaces.viewport import Viewport
 from Logical_Layer.Util.text import Text
 from Logical_Layer.Util.color import Color as color
-from Logical_Layer.Viewport.button import Button
+from Logical_Layer.Util.button import Button
+from Logical_Layer.Util.state import State
 from Logical_Layer.Viewport.image_scale import ImageScale
+import pygame as py
 
 class DifficultyMenu(Viewport):
     def __init__(self):
         # Initialize super class
         super().__init__("Difficulty Menu")
+        self.gameDifficulty = True
 
+        # List of images' names
+        uniqueImgs = ['button_inactive','button_active', 'difficulty_menu', 'frame', 'extra_button', 'logo']
+        sharedImgs = ['backspace', 'enter']
+       
         # Load imagenes and font
-        self.invadersImgs = self.loadImages(True)
-        self.doomImgs = self.loadImages(False)
-        self.font = '{0}\\knight_warrior.otf'.format(self.fontPath)
+        self.uniqImages = self.loadSharedImages(sharedImgs)
+        self.reptImages = self.loadSingularImages(uniqueImgs)
+        self.font = self.getFont()
 
-        # Default images and statu's button
-        self.images = self.invadersImgs
-        self.stateBtn1 = self.images['button_active']
-        self.stateBtn2 = self.images['button_inactive']
+        # Get difficulty info
         self.dictInfo = self.createInfoDict()
+
+        # Default repeated images and unique images
+        self.images = self.reptImages['basic']
+        self.imgState1 = self.images['button_active']
+        self.imgState2 = self.images['button_inactive']
+        self.imgState3 = self.images['extra_button']
+        self.imgBack = self.uniqImages['backspace']
+        self.imgEnter = self.uniqImages['enter']
         self.info = self.dictInfo['easy']
-        
-    def handle_events(self, events):
+
+    def handle_events(self, events) -> dict:
         for event in events:
             if event.type == KEYDOWN:
-                if event.key == K_UP:
-                    self.changeState(True)
-                elif event.key == K_DOWN:
-                    self.changeState(False)
-                elif event.key == K_BACKSPACE:
-                    return 'switch_to_introduction'
-                if event.key == K_RETURN:
-                    print('Enter')      
+                match event.key:
+                    case py.K_UP:
+                        self.changeState(True)
+                    case py.K_DOWN:
+                        self.changeState(False)
+                    case py.K_BACKSPACE:
+                        return {'state': State.INTRO}
+                    case py.K_RETURN:
+                        return {'state': State.PLAYER, 'difficulty': self.gameDifficulty}
+                    case _:
+                        pass
             else:
-                Viewport.exit(event)
+                self.exit(event)
 
     def draw(self):
         # Display background
-        self.screen.blit(self.images['difficulty_menu'], (0, 0))
+        background = transform.scale(self.images['difficulty_menu'], (self.display.width, self.display.height))
+        self.screen.blit(background, (0, 0))
+        sc = self.display
 
         # Create and display logo
-        self.logo = ImageScale(1, self.images['logo'], 520, 230)
-        self.logo.draw(self.screen, self.display.widthP(5), self.display.heightP(4))
-        
+        logo = ImageScale(1, self.images['logo'], 520, 230)
+        logo.draw(self.screen, sc.widthP(5), sc.heightP(4))
+
         # Create buttons
-        self.btn1 = Button(self.stateBtn1, self.logo.rect.x + 30, self.logo.rect.bottom + 40, 0.35)
-        self.btn2 = Button(self.stateBtn2, self.logo.rect.x + 30, self.btn1.rect.bottom + 10, 0.35)
+        btnEasy = Button(self.imgState1, 0.35, 'EASY', self.font)
+        btnHard = Button(self.imgState2, 0.35, 'HARD', self.font)
+        btnBack = Button(self.imgState3, 0.4, 'Back', self.font)
+        btnEnter = Button(self.imgState3, 0.4, 'Select', self.font)
 
-        self.btn3 = Button(self.images['extra_button'], self.display.widthP(78), self.display.heightP(92), 0.4)
-        self.btn3.draw(self.screen)
-        
-        self.btn4 = Button(self.images['extra_button'], self.btn3.rect.right -15, self.btn3.rect.y, 0.4)
-        self.btn4.draw(self.screen)
-
-        # Create images
-        self.enter = ImageScale(1, self.images['enter'], 50, 50)
-        self.enter.draw(self.screen, self.btn4.rect.x + 20, self.btn4.rect.y + 2)
-
-        self.backspace = ImageScale(1, self.images['backspace'], 40, 40)
-        self.backspace.draw(self.screen, self.btn3.rect.x + 30, self.btn3.rect.y + 10)
-
-        # Create buttons' text
-        self.text1 = Text('EASY', self.font, 50, color.WHITE, self.btn1.x + self.btn1.xP(18), self.btn1.y + self.btn1.yP(25))      
-        self.text2 = Text('HARD', self.font, 50, color.WHITE, self.btn2.x + self.btn2.xP(18), self.btn2.y + self.btn2.yP(25))     
-        self.text3 = Text('Back', self.font, 30, color.WHITE, self.backspace.rect.right + 10, self.backspace.rect.y + 4)     
-        self.text4 = Text('Enter', self.font, 30, color.WHITE, self.enter.rect.right + 5, self.enter.rect.y + 10)     
+        # Draw buttons
+        btnEasy.draw(self.screen, logo.rect.left + 30, logo.rect.bottom + 40, 18, 24)
+        btnHard.draw(self.screen, logo.rect.left + 30, btnEasy.rect.bottom + 10, 18, 24)
+        btnBack.drawIcon(self.screen, self.imgBack, sc.widthP(78), sc.heightP(92))
+        btnEnter.drawIcon(self.screen, self.imgEnter, btnBack.rect.right - 15, btnBack.rect.top)
 
         # Create and draw frame
         self.frame = ImageScale(1, self.images['frame'], 450, 300)
-        self.frame.draw(self.screen, self.btn2.x, self.btn2.rect.bottom + 20)
+        self.frame.draw(self.screen, btnHard.rect.left, btnHard.rect.bottom + 20)
 
         # Create and display frame's information
         self.displayInfo(self.frame.rect.x + 40, self.frame.rect.y + 60)
 
-        # Display buttons
-        if self.btn1.draw(self.screen):
+        # Capture button click
+        if btnEasy.mouseClick():
             self.changeState(True)
 
-        if self.btn2.draw(self.screen):
+        if btnHard.mouseClick():
             self.changeState(False)
-
-
-        # Display texts
-        self.text1.draw(self.screen)
-        self.text2.draw(self.screen)
-        self.text3.draw(self.screen)
-        self.text4.draw(self.screen)
 
     def changeState(self, state: bool):
         if state:
-           self.images = self.invadersImgs
-           self.stateBtn1 = self.images['button_active']
-           self.stateBtn2 = self.images['button_inactive']
+           self.images = self.reptImages['basic']
+           self.imgState1 = self.images['button_active']
+           self.imgState2 = self.images['button_inactive']
+           self.imgState3 = self.images['extra_button']
            self.info = self.dictInfo['easy']
         else:
-           self.images = self.doomImgs
-           self.stateBtn1 = self.images['button_inactive']
-           self.stateBtn2 = self.images['button_active']
+           self.images = self.reptImages['doom']
+           self.imgState1 = self.images['button_inactive']
+           self.imgState2 = self.images['button_active']
+           self.imgState3 = self.images['extra_button']
            self.info = self.dictInfo['hard']
 
-    def loadImages(self, folder: bool):
-        # List of images' name
-        nameImages = ['button_inactive','button_active', 'logo', 'difficulty_menu', 'frame', 'extra_button', 'backspace', 'enter']
-
-        # Choose folder
-        path = 'Basic' if folder else 'Doom'
-        path = '{0}\\{1}'.format(self.imagePath, path)
-
-        # Create dictionary of images
-        result_dict = {}
-        for name in nameImages:
-            if name.find('menu') > -1:
-                background = image.load('{0}\\{1}.png'.format(path, name)).convert()
-                result_dict[name] = transform.scale(background, (self.display.width, self.display.height))
-            else:
-                result_dict[name] = image.load('{0}\\{1}.png'.format(path, name)).convert_alpha()
-
-        return result_dict
+        self.gameDifficulty = state
 
     def displayInfo(self, xPos: int, yPos: int):
         heightCoor = yPos
@@ -141,7 +125,7 @@ class DifficultyMenu(Viewport):
                     '- Number of enemies: {}',
                     '- Enemy speed: {}']
         # Changing parts
-        numbers = ['6', '4', '40', '10', '3', '2', '60', '20']
+        numbers = ['6', '3', '40', '10', '3', '2', '50', '20']
         countList = len(numbers) // 2
         
         # Dictionary and list temp

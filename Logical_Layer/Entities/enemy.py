@@ -6,11 +6,12 @@ from Logical_Layer.Util.color import Color
 
 class Enemy(sprite.Sprite):
     # Parameterized Constructor
-    def __init__(self, gameScreen: Screen, scale: int, images: dict, img: ImageScale, row: int, column: int):
+    def __init__(self, gameScreen: Screen, scale: int, images: dict, img: ImageScale, row: int, column: int, totalRows: int):
         sprite.Sprite.__init__(self)
         self.screen = gameScreen.surface
         self.row = row
         self.column = column
+        self.rows = totalRows
         self.dictImages = images
         self.images = []
         self.scale = self.load_images(scale, img)
@@ -27,16 +28,24 @@ class Enemy(sprite.Sprite):
 
     # Overrides the Update method which is responsible for displaying elements on the screen
     def update(self, *args):
-        Limit.bordersCollision(self.rect, self.screen, Color.PURPLE)
+        Limit.bordersCollision(self.rect, self.screen, Color.PURPLE1)
         self.screen.blit(self.image, self.rect)
 
     def load_images(self, scale: int, img: ImageScale):
-        numberEnemy = {0: ['1_2', '1_1'],
-                       1: ['2_2', '2_1'],
-                       2: ['2_2', '2_1'],
-                       3: ['3_1', '3_2'],
-                       4: ['3_1', '3_2'],
-                      }
+        numberEnemy = {}
+        enemyRowStruture = [['1_2', '1_1'],
+                            ['2_2', '2_1'],
+                            ['2_2', '2_1'], 
+                            ['3_1', '3_2'],
+                            ['3_1', '3_2']]
+        
+        #iRow = 0
+        for row in range(self.rows):
+            numberEnemy[row] = enemyRowStruture[row]
+            #iRow += 0       
+            #if iRow == len(enemyRowStruture) - 1:
+            #    iRow = 0
+    
         img1, img2  = (self.dictImages['enemy{}'.format(img_num)] for img_num in
                       numberEnemy[self.row])
         

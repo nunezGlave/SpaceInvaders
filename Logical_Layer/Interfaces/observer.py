@@ -1,5 +1,3 @@
-
-
 class Observer:
     def __init__(self, game_instance):
         self.game_instance = game_instance
@@ -9,3 +7,6 @@ class Observer:
     
     def send_command(self, command):
         self.game_instance.command(command)
+    
+    def end_game(self,score):
+        pass

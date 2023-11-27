@@ -9,24 +9,35 @@ from Logical_Layer.Interfaces.viewport import Viewport
 from Logical_Layer.Util.text import Text
 from Logical_Layer.Util.color import Color as color
 from Logical_Layer.Util.align import Align
+from Logical_Layer.Util.state import State
 
 class IntroductionMenu(Viewport):
     def __init__(self):
+        # Initialize super class
         super().__init__("Space Invaders Menu")
-        self.logo = image.load(self.imagePath + '\\' + 'logo.jpg').convert()
+        
+        # Load images an font
+        images = self.loadSharedImages(['intro_menu'])
+        self.font = self.getFont()
+
+        # Set background image
+        self.logo = images['intro_menu']
         self.background = transform.scale(self.logo, (self.display.width, self.display.height))
-        self.font = self.fontPath + '\\' + 'knight_warrior.otf' # 'knight_warrior.otf'
+
+        # Create text messages
         self.optionMenu = Text('PRESS ENTER', self.font, 60, color.WHITE, self.display.widthP(48), self.display.heightP(91), Align.CENTER)      
+        
+        # Effect controllers
         self.timer = time.get_ticks()
         self.effectText = True
 
-    def handle_events(self, events):
+    def handle_events(self, events) -> dict:
         for event in events:
             if event.type == KEYDOWN:
                 if event.key == K_RETURN:
-                    return 'switch_to_difficulty'
+                    return {'state': State.DIFFICULTY}
             else:
-                Viewport.exit(event)
+                self.exit(event)
 
     def draw(self):
         # Display background
