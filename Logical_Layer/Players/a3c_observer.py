@@ -2,14 +2,14 @@
 import random
 
 from Logical_Layer.Interfaces.observer import Observer
-from Logical_Layer.A3C import space_bot
+from Logical_Layer.A3C import Space_bot
 
 class A3C_Observer(Observer):
     def __init__(self, game_instance):
         super().__init__(game_instance)
         self.player_x = 0
         self.bullet_x = []
-        self.space_bot = space_bot.Space_bot(3, 3, self)
+        self.space_bot = Space_bot.Space_bot(3, 3, self)
         self.space_bot.set_inputs([0.0] * 3)
         self.space_bot.set_layers()
         self.average_enemy_x = 0
