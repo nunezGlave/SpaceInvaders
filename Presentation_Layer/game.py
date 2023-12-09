@@ -376,7 +376,8 @@ class SpaceInvaders(Viewport):
 
     # Create enemies' shoots in random order
     def make_enemies_shoot(self):
-        if (time.get_ticks() - self.timer) > 700 and self.enemies:
+        i = 1 if self.difficulty else 2
+        if (len(self.enemyBullets)) < i and self.enemies:
             enemy = self.enemies.random_bottom()
             self.enemyBullets.add(Bullet(self.displaySub, enemy.rect.centerx, enemy.rect.centery + 10, 1, 5, self.images['enemy_laser'], 'center'))
             self.allSprites.add(self.enemyBullets)
