@@ -15,7 +15,7 @@ from Logical_Layer.Util.limit import Limit
 from Logical_Layer.Entities.life import Life
 from Logical_Layer.Entities.ship import Ship
 from Logical_Layer.Entities.enemy import Enemy
-from Logical_Layer.Entities.enemies_group import EnemiesGroup
+from Logical_Layer.Entities.enemies import EnemiesGroup
 from Logical_Layer.Entities.mistery import Mystery
 from Logical_Layer.Entities.blocker import Blocker
 from Logical_Layer.Entities.bullet import Bullet
@@ -35,7 +35,7 @@ IMAGE_PATH = FULL_PATH + '/Assets/Images/Doom/'
 SOUND_PATH = FULL_PATH + '/Assets/Sounds/Doom/'
 FONT = FONT_PATH + 'space_invaders.ttf'
 
-IMG_NAMES = ['ship', 'mystery',
+IMG_NAMES = ['ship1', 'mystery',
              'enemy1_1', 'enemy1_2',
              'enemy2_1', 'enemy2_2',
              'enemy3_1', 'enemy3_2',
@@ -62,7 +62,7 @@ class SpaceInvaders():
         self.images = {name: image.load(IMAGE_PATH + '{}.png'.format(name)).convert_alpha() for name in IMG_NAMES}
     
         # Create scaling objects for images and text
-        self.SHIP = ImageScale(self.scale, self.images['ship'], 70, 70)
+        self.SHIP = ImageScale(self.scale, self.images['ship1'], 70, 70)
         self.LIFE = ImageScale(self.scale, self.images['life'], 40, 40)
         self.MISTERY = ImageScale(self.scale, self.images['mystery'], 95, 70)
         self.TextMenu = TextScale(self.scale, 70)
@@ -81,7 +81,7 @@ class SpaceInvaders():
         self.life1 = Life(self.screen, self.LIFE, self.screen.width - self.LIFE.scaleWidth - 12, 5)
         self.life2 = Life(self.screen, self.LIFE, self.life1.posX - self.LIFE.scaleWidth - 8, self.life1.posY)
         self.life3 = Life(self.screen, self.LIFE, self.life2.posX - self.LIFE.scaleWidth - 8, self.life2.posY)
-        self.livesGroup = sprite.Group(self.life3, self.life2, self.life1)
+        self.livesGroup = sprite.Group(self.life3)
         
         # Create game's HUB
         self.ScoreTextW = TextScale.scaleWidth('Lives', FONT, self.titleText.size - 30)
@@ -142,6 +142,7 @@ class SpaceInvaders():
                 if self.should_exit(e):
                     sys.exit()
                 if e.type == KEYUP:
+                    print(len(SpaceInvaders.allGameInstances))
                     for games in SpaceInvaders.allGameInstances:
                         games.make_group_blockers(6)
                         games.livesGroup.add(self.life1, self.life2, self.life3)
@@ -282,14 +283,15 @@ class SpaceInvaders():
             if (time.get_ticks()*self.gameSpeed - self.reloadTimer > 1000 )and self.shipAlive:
                 self.reloadTimer = time.get_ticks()*self.gameSpeed
                 if self.score < 500:
-                    bullet = Bullet(self.screen, self.player.rect.centerx, self.player.rect.top - 9, -1, 15, self.images['laser'], 'center')
+                    bullet = Bullet(self.screen, self.player.rect.centerx, self.player.rect.top - 9, -1, 15, self.images['laser'])
                     self.bullets.add(bullet)
+                    print('bullets:' ,len(self.bullets))
                     self.allSprites.add(self.bullets)
                     if self.gameSpeed==1:
-                        self.sounds['shoot2'].play()
+                        self.sounds['shoot1'].play()
                 else:
-                    leftbullet = Bullet(self.screen, self.player.rect.centerx - 15, self.player.rect.top - 9, -1, 15, self.images['laser'], 'left')
-                    rightbullet = Bullet(self.screen, self.player.rect.centerx + 15, self.player.rect.top - 9, -1, 15, self.images['laser'], 'right')
+                    leftbullet = Bullet(self.screen, self.player.rect.centerx - 15, self.player.rect.top - 9, -1, 15, self.images['laser'])
+                    rightbullet = Bullet(self.screen, self.player.rect.centerx + 15, self.player.rect.top - 9, -1, 15, self.images['laser'])
                     self.bullets.add(leftbullet)
                     self.bullets.add(rightbullet)
                     self.allSprites.add(self.bullets)
@@ -355,14 +357,14 @@ class SpaceInvaders():
     # Create a group of enemies
     def make_enemies(self):
         # Extra space between images
-        self.extraSpace = { 1: 23, 2: 15, 3: 10 }
+        self.extraSpace = { 1: 23, 2: 10, 3: 10 }
 
         # Number of columns and rows of enemies
         enemyColumns = 10
         enemyRows = 5
         
         # Create group of enemies
-        enemySize = ImageScale(self.scale, self.images['enemy1_1'], 70, 65, 0.72)
+        enemySize = ImageScale(self.scale, self.images['enemy1_1'], 60, 65, 0.72)
         enemySpace =  enemySize.scaleHeight + 8                              # Image height + Extra Space
         enemies = EnemiesGroup(self.groupEnemyPosition, enemySpace, self.screen, enemyColumns, enemyRows, 10)
         leftSpace = self.screen.widthP(10)   # A left space of the windows
@@ -380,7 +382,7 @@ class SpaceInvaders():
     def make_enemies_shoot(self):
         if (time.get_ticks()*(self.gameSpeed) - self.timer) > 1500 and self.enemies:
             enemy = self.enemies.random_bottom()
-            self.enemyBullets.add(Bullet(self.screen, enemy.rect.centerx, enemy.rect.centery + 10, 1, 5, self.images['enemy_laser'], 'center'))
+            self.enemyBullets.add(Bullet(self.screen, enemy.rect.centerx, enemy.rect.centery + 10, 1, 5, self.images['enemy_laser']))
             self.allSprites.add(self.enemyBullets)
             self.timer = time.get_ticks()*self.gameSpeed
 
@@ -467,7 +469,7 @@ class SpaceInvaders():
 
     def create_audio(self):
         self.sounds = {}
-        for sound_name in ['shoot', 'shoot2', 'invaderkilled', 'mysterykilled','shipexplosion']:
+        for sound_name in ['shoot1', 'shoot2', 'invaderkilled', 'mysterykilled','shipexplosion']:
             self.sounds[sound_name] = mixer.Sound(SOUND_PATH + '{}.wav'.format(sound_name))
             self.sounds[sound_name].set_volume(0.2)
 

@@ -444,6 +444,7 @@ class SpaceInvaders(object):
                 self.player.rect.x += self.player.speed
             self.command_right = False
         if self.command_shoot:
+            print(len(self.bullets))
             if len(self.bullets) == 0 and self.shipAlive:
                 if self.score < 1000:
                     bullet = Bullet(self.player.rect.x + 23,

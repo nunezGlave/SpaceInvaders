@@ -1,5 +1,5 @@
 from pygame import *
-from Logical_Layer.Entities.enemies_group import EnemiesGroup
+from Logical_Layer.Entities.enemies import EnemiesGroup
 from Logical_Layer.Viewport.image_scale import ImageScale
 from Logical_Layer.Viewport.screen_surface import Screen
 from Logical_Layer.Util.limit import Limit
@@ -30,6 +30,7 @@ class Mystery(sprite.Sprite):
         self.leftlimit = positionX - 20
         self.rightLimit = self.screenDimension.width + 40
         self.groupPosition = enemies
+        self.score = choice([50, 100, 150, 300])
 
     # Overrides the Update method which is responsible for displaying elements on the screen
     def update(self, keys, currentTime, *args):

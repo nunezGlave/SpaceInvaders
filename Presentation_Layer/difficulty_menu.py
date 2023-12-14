@@ -125,7 +125,7 @@ class DifficultyMenu(Viewport):
                     '- Number of enemies: {}',
                     '- Enemy speed: {}']
         # Changing parts
-        numbers = ['6', '3', '40', '10', '3', '2', '50', '20']
+        numbers = ['6', '3', '40', '15', '3', '2', '60', '20']
         countList = len(numbers) // 2
         
         # Dictionary and list temp

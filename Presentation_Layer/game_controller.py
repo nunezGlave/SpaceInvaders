@@ -5,6 +5,7 @@ from Presentation_Layer.difficulty_menu import DifficultyMenu
 from Presentation_Layer.player_menu import PlayerMenu
 from Presentation_Layer.game import SpaceInvaders
 from Presentation_Layer.scoreboard import Scoreboard
+from Presentation_Layer.guide_menu import GuideMenu
 
 class GameController(Viewport):
     def __init__(self):
@@ -40,14 +41,17 @@ class GameController(Viewport):
                         player = action['player']
                         self.switch_state(SpaceInvaders(modeGame, player, difficulty, self.display.width, self.display.height))
                     elif modeGame == 2:
-                        player1 = action['player1']
-                        player2 = action['player2']
-                        spLeft = SpaceInvaders(modeGame, player1, difficulty, self.display.halfWidth, self.display.height, 0 , 0)
-                        spRight = SpaceInvaders(modeGame, player2, difficulty, self.display.halfWidth, self.display.height, self.display.halfWidth, 0)
+                        team1 = action['team-left']
+                        team2 = action['team-right']
+                        spLeft = SpaceInvaders(modeGame, team1, difficulty, self.display.halfWidth, self.display.height, 0 , 0)
+                        spRight = SpaceInvaders(modeGame, team2, difficulty, self.display.halfWidth, self.display.height, self.display.halfWidth, 0)
                         self.switch_state(spLeft, spRight)
                 case State.SCORE.value:
                     difficulty = action['difficulty']
                     self.switch_state(Scoreboard(difficulty))
+                case State.GUIDE.value:
+                    difficulty = action['difficulty']
+                    self.switch_state(GuideMenu(difficulty))
                 case _:
                     pass
 

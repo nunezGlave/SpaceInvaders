@@ -75,7 +75,7 @@ class Scoreboard(Viewport):
 # Allow individual execution file [Remove this when finished]
 if __name__ == "__main__":
     diffGame = False
-    game = Scoreboard(False)
+    game = Scoreboard(diffGame)
     game.run()
 
 

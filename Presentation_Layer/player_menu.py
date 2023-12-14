@@ -66,31 +66,22 @@ class PlayerMenu(Viewport):
                             self.changeState()
                     case py.K_BACKSPACE:
                         return {'state': State.DIFFICULTY}
+                    case py.K_t:
+                        return {'state': State.GUIDE, 'difficulty': self.difficulty}
                     case py.K_RETURN:
                         if self.stateIndex == 0:
                             return {'mode-game': 1, 'difficulty': self.difficulty, 'state': State.GAME, 
-                                    'player': { 'typePlayer': 0, 'name': self.playerName[0]}}
+                                    'player': [{'name': self.playerName[0], 'typePlayer': 0}]}
                         elif self.stateIndex == 1:
-                            if len(self.team1) == 1 and len(self.team2) == 1:
+                            if len(self.team1) != 0 and len(self.team2) != 0:
                                 return {'mode-game': 2, 'difficulty' : self.difficulty, 'state': State.GAME,
-                                        'player1': {'typePlayer': self.typePlayer(self.team1[0]), 'name': self.team1[0]},
-                                        'player2': {'typePlayer': self.typePlayer(self.team2[0]), 'name': self.team2[0]}}
+                                        'team-left': self.team1, 'team-right': self.team2}
                         else:
                             return {'state': State.SCORE, 'difficulty': self.difficulty}
                     case _:
                         pass
             else:
                 self.exit(event)
-
-    def typePlayer(self, name: str):
-        if name == self.playerName[0]:
-            return 0
-        elif name == self.playerName[1]:
-            return 1
-        elif name == self.playerName[2]:
-            return 2
-        else:
-            return 3
 
     def draw(self):
         # Draw background
@@ -151,12 +142,14 @@ class PlayerMenu(Viewport):
             self.detectArrow(player4, 3)
 
         # Create guide buttons
+        btnGuide = Button(self.unImages['extra_button'], 0.4, 'Info', self.font)
         btnBack = Button(self.unImages['extra_button'], 0.4, 'Back', self.font)
         btnEnter = Button(self.unImages['extra_button'], 0.4, 'Play' if self.stateIndex == 0 or self.stateIndex == 1 else 'View', self.font)
 
         # Draw guide buttons
         btnBack.drawIcon(self.screen, self.shImages['backspace'], sc.widthP(78), sc.heightP(92))
         btnEnter.drawIcon(self.screen, self.shImages['enter'], btnBack.rect.right - 15, btnBack.rect.top)
+        btnGuide.draw(self.screen, btnBack.rect.left - btnGuide.rect.width + 5, sc.heightP(92))
 
         # Capture button click
         if btnSPlayer.mouseClick():
@@ -183,13 +176,13 @@ class PlayerMenu(Viewport):
         if eventArrow == 'LEFT' and self.playerIndex[index] > 0:
             #print('player - left', player.name)
             if self.playerIndex[index] == 1 and len(self.team1) < 2:
-                self.team1.append(player.name)
+                self.team1.append({'name': player.name, 'typePlayer': index})
                 self.playerIndex[index] -= 1
                 self.showLeftArrow[index] = False
 
             if self.playerIndex[index] == 2:
-                if player.name in self.team1 : self.team1.remove(player.name)
-                if player.name in self.team2 : self.team2.remove(player.name)
+                self.team1 = [pl for pl in self.team1 if pl.get('typePlayer') != index]
+                self.team2 = [pl for pl in self.team2 if pl.get('typePlayer') != index]
                 self.playerIndex[index] -= 1
                 self.showRigthArrow[index] = True
 
@@ -197,13 +190,13 @@ class PlayerMenu(Viewport):
         if eventArrow == 'RIGHT' and self.playerIndex[index] < len(self.playerPosX) - 1:
             #print('player - right', player.name)
             if self.playerIndex[index] == 1 and len(self.team2) < 2:
-                self.team2.append(player.name)
+                self.team2.append({'name': player.name, 'typePlayer': index})
                 self.playerIndex[index] += 1  
                 self.showRigthArrow[index] = False
 
             if self.playerIndex[index] == 0:
-                if player.name in self.team1 : self.team1.remove(player.name)
-                if player.name in self.team2 : self.team2.remove(player.name)
+                self.team1 = [pl for pl in self.team1 if pl.get('typePlayer') != index]
+                self.team2 = [pl for pl in self.team2 if pl.get('typePlayer') != index]
                 self.playerIndex[index] += 1
                 self.showLeftArrow[index] = True
   

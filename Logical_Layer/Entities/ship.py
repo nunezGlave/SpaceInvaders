@@ -25,6 +25,10 @@ class Ship(sprite.Sprite):
         # Set the position of the ship
         self.rect = self.image.get_rect(topleft=(self.xPos, self.yPos)) 
 
+    # Toggle image based on game score
+    def toggleImage(self, image: Surface):
+        self.image = image
+
     # Overrides the update method of the Sprite class
     def update(self, keys, *args):
         Limit.bordersCollision(self.rect, self.screen, Color.YELLOW1)

@@ -9,17 +9,13 @@ class EnemyExplosion(sprite.Sprite):
         super(EnemyExplosion, self).__init__(*groups)
         self.screen = gameScreen.surface        
         self.listImages = enemy.dictImages
-        self.image = ImageScale(scale, self.get_image(enemy.row), enemy.scale.originalWidth, enemy.scale.originalHeight)
-        self.image2 = ImageScale(scale, self.get_image(enemy.row), enemy.scale.originalWidth, enemy.scale.originalHeight)
+        self.image = ImageScale(scale, self.listImages[enemy.explosion], enemy.scale.originalWidth, enemy.scale.originalHeight)
+        self.image2 = ImageScale(scale, self.listImages[enemy.explosion], enemy.scale.originalWidth, enemy.scale.originalHeight)
         self.image = self.image.scaleImage
         self.image2 = self.image2.scaleImage
 
         self.rect = self.image.get_rect(topleft=(enemy.rect.x, enemy.rect.y))
         self.timer = time.get_ticks()
-
-    def get_image(self, row):
-        img_colors = ['purple', 'blue', 'blue', 'green', 'green']
-        return self.listImages['explosion_{}'.format(img_colors[row])]
 
     # Overrides the Update method which is responsible for displaying elements on the screen
     def update(self, current_time, *args):

@@ -6,3 +6,4 @@ class State(Enum):
     PLAYER = 'switch_to_player'
     GAME = 'switch_to_game'
     SCORE = 'switch_to_scoreboard'
+    GUIDE = 'switch_to_guide'
