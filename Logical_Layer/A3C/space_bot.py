@@ -80,12 +80,13 @@ class Space_bot:
         self.output_layer = None
         self.choice = 0
 #Learning rate is the flat random range amount that each weight and bias is changed by
-        self.learning_rate = 0.2
+        self.learning_rate = 0.3
         self.score = 0
         self.index = Space_bot.bot_count
         Space_bot.space_bots[self.index] = self
         Space_bot.bot_count += 1
         self.playing = True
+        self.data_string = "-0.794 -1.144 -1.685 0.683 0.312 -1.064 1.544 2.613 2.348 -0.617 2.791 1.222 0.206 -0.469 2.145 -0.195 2.79 1.627 0.547 -0.878"
 
 #Initializes the input neurons
     def set_inputs(self, input_vars):
@@ -100,7 +101,7 @@ class Space_bot:
         self.hidden_layers[0] = NeuronLayer(self.neuron_count, self.input_layer)
         for i in range(len(self.hidden_layers) - 1):
             self.hidden_layers[i + 1] = NeuronLayer(self.neuron_count, self.hidden_layers[i])
-        self.output_layer = NeuronLayer(4, self.hidden_layers[len(self.hidden_layers) - 1])
+        self.output_layer = NeuronLayer(2, self.hidden_layers[len(self.hidden_layers) - 1])
     def add_score(self, score):
         self.round += 1
         self.total_score += score
@@ -116,21 +117,17 @@ class Space_bot:
         print(s)
 #Prints the weights of the current neural network
     def draw_network(self):
+        data_string = ""
         for i in range(len(self.hidden_layers)):
-            lay = ""
             for j in range(len(self.hidden_layers[i].layer)):
-                s = ""
                 for k in range(len(self.hidden_layers[i].layer[j].weights)):
-                    s += str(round(self.hidden_layers[i].layer[j].get_weight_at(k) * 100) / 100) + " "
-                lay += ("(" + str(i) + "_" + str(j) + "): " + s)
-            print(lay)
-        o = "out :"
+                    data_string += str(round(self.hidden_layers[i].layer[j].get_weight_at(k) * 1000) / 1000) + " "
+                data_string += str(round(self.hidden_layers[i].layer[j].bias * 1000) / 1000) + " "
         for i in range(len(self.output_layer.layer)):
-            s = ""
             for j in range(len(self.output_layer.layer[i].weights)):
-                s += str(round(self.output_layer.layer[i].get_weight_at(j) * 100) / 100) + " "
-            o += ("(" + str(i) + "): " + s)
-        print(o)
+                data_string += str(round(self.output_layer.layer[i].get_weight_at(j) * 1000) / 1000) + " "
+            data_string += str(round(self.output_layer.layer[i].bias * 1000) / 1000) + " "
+        print(data_string)
 #Takes in the inputs, caluculates each neuron's value, and then chooses the move with the highest value
 #Rather than {Left, Right, Shoot}, I switched to having {Left and Shoot, Right and Shoot, Right and don't Shoot, Left and don't Shoot}
     def choose_move(self, inputs):
@@ -153,10 +150,6 @@ class Space_bot:
         elif self.choice == 1:
             self.observer.send_command("right")
             self.observer.send_command("shoot")
-        elif self.choice == 2:
-            self.observer.send_command("right")
-        elif self.choice == 3:
-            self.observer.send_command("left")
     
     #Takes the bot and creates a child copy of it with slight mutations to each weight and bias
     def split_bot(self, observer):
@@ -174,6 +167,21 @@ class Space_bot:
                 copy.output_layer.layer[i].set_weight_at(j, self.output_layer.layer[i].get_weight_at(j)+random.uniform(-self.learning_rate, self.learning_rate))
                 copy.output_layer.layer[i].bias = self.output_layer.layer[i].bias + random.uniform(-self.learning_rate, self.learning_rate)
         return copy
+    def import_bot(self):
+        data = self.data_string.split()
+        for i in range(len(self.hidden_layers)):
+            for j in range(len(self.hidden_layers[i].layer)):
+                for k in range(len(self.hidden_layers[i].layer[j].weights)):
+                    self.hidden_layers[i].layer[j].set_weight_at(k, float(data[0])+ random.uniform(-self.learning_rate, self.learning_rate))
+                    data.pop(0)
+                self.hidden_layers[i].layer[j].bias = float(data[0])+ random.uniform(-self.learning_rate, self.learning_rate)
+                data.pop(0)
+        for i in range(len(self.output_layer.layer)):
+            for j in range(len(self.output_layer.layer[i].weights)):
+                self.output_layer.layer[i].set_weight_at(j, float(data[0])+ random.uniform(-self.learning_rate, self.learning_rate))
+                data.pop(0)
+            self.output_layer.layer[i].bias = float(data[0])+ random.uniform(-self.learning_rate, self.learning_rate)
+            data.pop(0)
     def end_game(self,score):
         self.playing = False
         gameOver = True
@@ -188,9 +196,10 @@ class Space_bot:
                     highest_score = bot.score
                     winner = bot
             print("Gen ["+str(Space_bot.generation)+"] Winner: " + str(winner.index)+ " Score: " + str(winner.score))
+            winner.draw_network()
             Space_bot.generation += 1
             Old_bots = Space_bot.space_bots
-            Space_bot.space_bots = [None] * 4
+            Space_bot.space_bots = [None] * Space_bot.bot_count
             Space_bot.bot_count = 0
             for bot in Old_bots:
                 bot.observer.space_bot = winner.split_bot(bot.observer)
