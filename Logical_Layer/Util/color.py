@@ -9,6 +9,7 @@ class Color(Enum):
     YELLOW2 = (232, 220, 0)
     BLUE1 = (0, 0, 255)
     BLUE2 = (128, 0, 255)
+    BLUE3 = (26, 26, 196)
     PURPLE1 = (115, 0, 230)
     PURPLE2 = (203, 0, 255)
     RED1 = (237, 28, 36)

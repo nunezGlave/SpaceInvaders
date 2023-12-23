@@ -4,8 +4,9 @@ import sqlite3
 import os
 
 class DataBase():
-    def __init__(self, dbName: str):
-        self.path = "{0}\{1}\{2}.db".format(os.getcwd(), 'Data_Base', dbName)
+    def __init__(self):
+        self.name = 'Scoreboard'
+        self.path = "{0}\{1}\{2}.db".format(os.getcwd(), 'Data', self.name)
         self.conn : Conn = self.createConnection(self.path)
 
     def createConnection(self, db_file):
@@ -13,12 +14,12 @@ class DataBase():
         conn = None
         try:
             conn = sqlite3.connect(db_file)
-            print("SQLite: ", sqlite3.version)
+            #print("SQLite: ", sqlite3.version)
             return conn
         except Error as e:
             print(e)
                 
-    def closeConnection(self):
+    def closeConn(self):
         if self.conn:
             self.conn.close()
 
@@ -27,12 +28,10 @@ class DataBase():
         try:
             cur = self.conn.cursor()
             cur.execute(sqlStatement)
-            self.conn.commit()
-            print('Table created successfully')
         except Error as e:
             print(e)
 
-    def queryData(self, sqlStatement: str):
+    def queryData(self, sqlStatement: str) -> list:
         """ Query all rows in a table """
         try:
             cur = self.conn.cursor()
@@ -42,13 +41,34 @@ class DataBase():
         except Error as e:
             print(e)
 
-    def insertOne(self, sqlStatement: str, *values):
-        """ create a table from the create_table_sql statement  """
+    def queryDataParams(self, sqlStatement: str, *values) -> list:
+        """ Query all rows in a table """
         try:
             cur = self.conn.cursor()
             cur.execute(sqlStatement, values)
-            self.conn.commit()
-            print("Inserted values successfully")
+            rows = cur.fetchall()
+            return rows
+        except Error as e:
+            print(e)
+        finally:
+            self.closeConn()
+
+    def queryOne(self, sqlStatement: str):
+        """ Query all rows in a table """
+        try:
+            cur = self.conn.cursor()
+            cur.execute(sqlStatement)
+            return cur.fetchone()[0]
+        except Error as e:
+            print(e)
+
+    def insert(self, sqlStatement: str, *values):
+        """ create a table from the create_table_sql statement  """
+        try:
+            cur = self.conn.cursor()
+            param = tuple(values)
+            cur.execute(sqlStatement, param)
+            return cur.lastrowid
         except Error as e:
             print(e)
 

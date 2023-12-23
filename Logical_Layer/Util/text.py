@@ -16,9 +16,19 @@ class Text(object):
         # Vertical and horizontal position of the text
         self.xPos, self.yPos = xPos, yPos
 
-        # The union of the position of the text and its size in pixels.
-        self.textWidth =  self.xPos + self.surface.get_width()
-        self.textHeight = self.yPos + self.surface.get_height()
+        # Text width and height
+        self.textWidth =  self.surface.get_width()
+        self.textHeight = self.surface.get_height()
 
-    def draw(self, surface: Surface):
-        surface.blit(self.surface, self.rect)
+        # The union of the position of the text and its size in pixels.
+        self.widthPosX =  self.xPos + self.textWidth
+        self.heightPosY = self.yPos + self.textHeight
+
+    # Draw text
+    def draw(self, screen: Surface):
+        screen.blit(self.surface, self.rect)
+
+    # Flip text
+    def rotate(self, angle: float):
+        self.surface = transform.rotate(self.surface, angle)
+

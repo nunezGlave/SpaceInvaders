@@ -471,18 +471,6 @@ class SpaceInvaders(object):
                     self.sounds['shoot2'].play()
             self.command_shoot = False
 
-    def get_player_bullets(self):
-        bullets = []
-        for bullet in self.bullets:
-            bullets.append([bullet.rect.x, bullet.rect.y])
-        return bullets
-
-    def get_enemy_bullets(self):
-        bullets = []
-        for bullet in self.enemyBullets:
-            bullets.append([bullet.rect.x, bullet.rect.y])
-        return bullets
-
     def make_enemies(self):
         enemies = EnemiesGroup(10, 5)
         for row in range(5):
@@ -676,6 +664,17 @@ class SpaceInvaders(object):
             display.update()
             self.clock.tick(60)
 
+    def get_player_bullets(self):
+        bullets = []
+        for bullet in self.bullets:
+            bullets.append([bullet.rect.x, bullet.rect.y])
+        return bullets
+
+    def get_enemy_bullets(self):
+        bullets = []
+        for bullet in self.enemyBullets:
+            bullets.append([bullet.rect.x, bullet.rect.y])
+        return bullets
 
 if __name__ == '__main__':
     player = players.DQN()

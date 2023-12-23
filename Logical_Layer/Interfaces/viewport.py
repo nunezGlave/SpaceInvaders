@@ -1,9 +1,13 @@
 from Logical_Layer.Viewport.screen_surface import Screen
 from abc import ABC, abstractmethod
+from pygame import *
 import pygame as py
 import os, sys
 
 class Viewport(ABC):
+
+    mainSound = None
+
     def __init__(self, title : str, width : float = 0, height : float = 0, leftPos : int = 0, topPos : int = 0):
         # Initialize pygame's variables
         py.init()
@@ -29,12 +33,14 @@ class Viewport(ABC):
         self.imagePath = imgPath
         self.sndPath = soundPath
 
+        self.mainSound = self.playSound(self.getSoundPath2, 'main', 0.2)
+
         # Set window's title
         py.display.set_caption(self.title)
 
         # Temp
-        print('Display Mode of {}'.format(self.title))
-        print('{} - {}'.format(self.display.width, self.display.height))
+        print('{}'.format(self.title))
+        # print('Display Mode: {} - {}'.format(self.display.width, self.display.height))
 
     # Event handling
     @abstractmethod
@@ -116,11 +122,50 @@ class Viewport(ABC):
         return  self.fontPath + '\\' + nameFont
     
     # Get sounds
-    def getSoundPath(self, difficulty : bool):
+    def getSoundPath1(self, difficulty : bool):
         return  '{0}\\{1}\\'.format(self.sndPath, 'Basic' if difficulty else 'Doom')
     
+    @property
+    def getSoundPath2(self):
+        return  '{0}\\'.format(self.sndPath)
+
+    def playSound(self, path: str, name: str, volume: float = 0):
+        name, extension = os.path.splitext(name)
+        sound = mixer.Sound('{0}{1}{2}'.format(path, name, extension if bool(extension) else '.wav'))
+        sound.set_volume(volume if volume != 0 else sound.get_volume())
+
+        return sound
+        
     # Exit game
     @classmethod
     def exit(self, event):
         if event.type == py.QUIT or (event.type == py.KEYUP and event.key == py.K_ESCAPE):
             sys.exit()
+
+    # Simulate events
+    def eventBackspace(self, extraValues: dict = None):
+        eventKey = {'key': K_BACKSPACE}
+
+        if isinstance(extraValues, dict):
+            eventKey.update(extraValues)
+
+        sendEvent = event.Event(KEYDOWN, eventKey)
+        event.post(sendEvent)
+
+    def eventEnter(self, extraValues: dict = None):
+        eventKey = {'key': K_RETURN}
+
+        if isinstance(extraValues, dict):
+            eventKey.update(extraValues)
+
+        sendEvent = event.Event(KEYDOWN, eventKey)
+        event.post(sendEvent)
+
+    def eventAsterisk(self, extraValues: dict = None):
+        eventKey = {'key': K_KP_MULTIPLY}
+
+        if isinstance(extraValues, dict):
+            eventKey.update(extraValues)
+
+        sendEvent = event.Event(KEYDOWN, eventKey)
+        event.post(sendEvent)

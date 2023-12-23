@@ -6,10 +6,22 @@ from Presentation_Layer.player_menu import PlayerMenu
 from Presentation_Layer.game import SpaceInvaders
 from Presentation_Layer.scoreboard import Scoreboard
 from Presentation_Layer.guide_menu import GuideMenu
+from pygame import *
 
 class GameController(Viewport):
     def __init__(self):
         super().__init__("Game Controller")
+
+        # Load the icon image
+        icon = image.load('{}/{}'.format(self.imagePath, 'logo1.jpg'))
+
+        # Set the Pygame window icon
+        display.set_icon(icon)
+
+        # Reproduce main sound
+        self.mainSound.play(-1)
+
+        # Start the game
         self.mainState = IntroductionMenu()
         self.secondaryState : Viewport = None
 
@@ -26,6 +38,7 @@ class GameController(Viewport):
 
         # Change status
         if action != None:
+            self.checkMainSound()
             match action['state'].value:
                 case State.INTRO.value:
                     self.switch_state(IntroductionMenu())
@@ -33,8 +46,11 @@ class GameController(Viewport):
                     self.switch_state(DifficultyMenu())
                 case State.PLAYER.value:
                     difficulty = action['difficulty']
+                    if action.get('restart') is not None:
+                        self.secondaryState = None
                     self.switch_state(PlayerMenu(difficulty))
                 case State.GAME.value:
+                    self.mainSound.stop()
                     modeGame = action['mode-game']
                     difficulty = action['difficulty']
                     if modeGame == 1:
@@ -51,7 +67,8 @@ class GameController(Viewport):
                     self.switch_state(Scoreboard(difficulty))
                 case State.GUIDE.value:
                     difficulty = action['difficulty']
-                    self.switch_state(GuideMenu(difficulty))
+                    modeGame = action['mode-game']
+                    self.switch_state(GuideMenu(difficulty, modeGame))
                 case _:
                     pass
 
@@ -61,4 +78,9 @@ class GameController(Viewport):
         
         if new2_state != None:
             self.secondaryState = new2_state
+
+    def checkMainSound(self):
+        if mixer.get_busy() == False:
+            self.mainSound.play(-1)
+
 

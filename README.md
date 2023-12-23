@@ -1,7 +1,12 @@
 # Product Description
-Product owner description of the product here
+Taking inspiration from Space Invaders, this game's main objectives include crafting a gaming atmosphere suitable for both human and Artificial Intelligence engagement. The project incorporated two reinforcement learning methods, A3C and DQN, to fulfill these goals.
+
+# Build
+To run the code, simply use the command "py main.py."
+If you want to generate the executable file, execute "build.bat" in the console.
+
 # Architecture
-### SpaceInvaders.py
+### player.py
 At the start of the game will create an instance of either 
 - human_observer(0)
 - human_observer(1)

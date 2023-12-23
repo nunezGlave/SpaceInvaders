@@ -24,9 +24,17 @@ from Logical_Layer.Effects.mistery_explosion import MysteryExplosion
 from Logical_Layer.Interfaces.viewport import Viewport
 from Logical_Layer.Entities.players import playersGroup
 from Logical_Layer.Entities.player import Player
+from Data_Layer.game_data import GameData
+from Logical_Layer.Util.state import State
+import pygame as py
+import datetime
 
 class SpaceInvaders(Viewport):
     gameCount = 0
+    gameStartTime = None
+    gameEndTime = None
+    gamesEnd = False
+    gameSound = None
 
     # Parameterized Constructor
     def __init__(self, modeGame : int, players : list, difficulty : bool, width : float, height : float, leftPos : int = 0, topPos : int = 0):
@@ -36,11 +44,12 @@ class SpaceInvaders(Viewport):
         # Get constructor's attributes
         self.difficulty = difficulty
         self.scale = modeGame
+        self.modeGame = modeGame
 
         # Evaluate difficulty changes
         self.numberLives = 3 if self.difficulty else 2
-        self.numberBlockers = 6 if self.difficulty else 3
-        self.numberEnemiesColumns = 8 if self.difficulty else 10
+        self.numberBlockers = 4 if self.difficulty else 3
+        self.numberEnemiesColumns = 8 if self.difficulty else 9
         self.numberEnemiesRows = 5 if self.difficulty else 6
         self.speedEnemies = 15 if self.difficulty else 20
 
@@ -59,9 +68,15 @@ class SpaceInvaders(Viewport):
         self.font = self.getFont()
 
         # Play background sound
-        self.soundPath = self.getSoundPath(self.difficulty)
+        self.soundPath = self.getSoundPath1(self.difficulty)
         if self.instanceCount == 1:
-            mixer.Sound(self.soundPath + 'd_e1m1.wav').play(-1)
+            SpaceInvaders.gameSound = mixer.Sound(self.soundPath + 'background.wav')
+            if self.difficulty:
+                SpaceInvaders.gameSound.set_volume(0.5)
+            else:
+                SpaceInvaders.gameSound.set_volume(0.3)
+
+            SpaceInvaders.gameSound.play(-1)
 
         # Set a background image
         self.background = transform.scale(self.images['background'], (self.displaySub.width, self.displaySub.height))
@@ -77,13 +92,13 @@ class SpaceInvaders(Viewport):
         # Determine ship and text postion
         shipSize = self.SHIP1.scaleWidth
         shipCoord = [self.displaySub.widthP(25) - (shipSize)/2, self.displaySub.widthP(75) - (shipSize)/2] if len(players) == 2 else [0, 0]
-        shipText = '{} \t\t & \t\t {}'.format(players[0]['name'], players[1]['name']) if len(players) == 2 else players[0]['name']
+        self.playersText = '{} \t\t & \t\t {}'.format(players[0]['name'], players[1]['name']) if len(players) == 2 else players[0]['name']
 
         # Create player according to the list of players
         self.playerGroup = playersGroup(self.displaySub, shipList, self.LIFE, self.numberLives, self.displaySub.width - self.LIFE.scaleWidth - 12, 5)
 
         for index, playerInfo in enumerate(players):
-            player = Player(self.displaySub, playerInfo['name'], playerInfo['typePlayer'], self.SHIP1, self.images['laser'], self.playerGroup.scoreLimit, shipCoord[index])
+            player = Player(self.displaySub, playerInfo, self.SHIP1, self.images['laser'], self.playerGroup.scoreLimit, shipCoord[index])
             self.playerGroup.add(player)
 
         # Create game's HUB
@@ -91,29 +106,48 @@ class SpaceInvaders(Viewport):
         self.ScoreTextW = TextScale.scaleWidth('Lives', self.font, self.text.scaleSize - 30)
         self.scoreText = Text('Score', self.font, self.text.scaleSize - 30, Color.WHITE, self.displaySub.widthP(2), 5)
         self.livesText = Text('Lives ', self.font, self.scoreText.size, Color.WHITE, spriteLife.posX - self.ScoreTextW - 10, 3)
-        self.PlayerName = Text(shipText, self.font, self.scoreText.size, Color.WHITE, self.displaySub.widthP(50), 5, Align.CENTER)
+        self.playerName1 = Text(self.playersText, self.font, self.scoreText.size, Color.WHITE, self.displaySub.widthP(50), 5, Align.CENTER)
 
         # Create game's extra text
-        self.gameOverText = Text('Game Over', self.font, self.text.scaleSize, Color.WHITE, self.displaySub.widthP(50), self.displaySub.heightP(35), Align.CENTER)                   
-        self.nextRoundText = Text('Next Round', self.font, self.gameOverText.size, Color.WHITE, self.displaySub.widthP(50), self.displaySub.heightP(35), Align.CENTER)    
+        self.textSize = TextScale(self.scale, 70, 0.7)
+        self.nextRoundText = Text('Next Round', self.font, self.textSize.scaleSize, Color.WHITE, self.displaySub.widthP(50), self.displaySub.heightP(35), Align.CENTER)    
+        self.gameOverText = Text('Game Over', self.font, self.textSize.scaleSize, Color.WHITE, self.displaySub.widthP(50), self.displaySub.heightP(35), Align.CENTER)    
+        self.playerName2 = Text(self.playersText, self.font, self.textSize.scaleSize, Color.WHITE, self.displaySub.widthP(50), self.gameOverText.heightPosY, Align.CENTER)
 
         # Determine the initial position of the group of enemies
-        self.Enemy_DEFAULT_POSITION = self.scoreText.textHeight + 15
+        self.Enemy_DEFAULT_POSITION = self.scoreText.heightPosY + 15
         self.groupEnemyPosition = self.Enemy_DEFAULT_POSITION
 
         # Control of game states and selection of the type of player as well as its mobility
         self.startGame = False
         self.mainScreen = True
         self.gameOver = False
+        self.gameWin = True
+        self.saveGame = True
+
+        # Get the time and day when starting the game
+        SpaceInvaders.gameStartTime = self.getDateTime()
 
     def handle_events(self, events) -> dict:
         for event in events:
             if event.type == KEYDOWN:
                 match event.key:
+                    case py.K_BACKSPACE:
+                        if hasattr(event, 'Show_Message'): 
+                            self.restartClassVariables()
+                            return {'state': State.PLAYER, 'difficulty': self.difficulty, 'restart': True}
                     case _:
                         pass
             else:
                 self.exit(event)
+
+    # Restart class variables
+    def restartClassVariables(self):
+        SpaceInvaders.gameCount = 0
+        SpaceInvaders.gameStartTime = None
+        SpaceInvaders.gameEndTime = None
+        SpaceInvaders.gamesEnd = False
+        SpaceInvaders.gameSound = None
 
     # Run the game
     def draw(self):
@@ -133,12 +167,12 @@ class SpaceInvaders(Viewport):
                 currentTime = time.get_ticks()
                 if currentTime - self.gameTimer < 3000:
                     self.screenSub.blit(self.background, (0, 0))
-                    self.scoreNumber = Text(str(self.score), self.font, self.scoreText.size + 2, Color.GREEN1, self.scoreText.textWidth + 12, self.scoreText.yPos - 1)
+                    self.scoreNumber = Text(str(self.score), self.font, self.scoreText.size + 2, Color.GREEN1, self.scoreText.widthPosX + 12, self.scoreText.yPos - 1)
                     self.scoreText.draw(self.screenSub)
                     self.scoreNumber.draw(self.screenSub)
                     self.nextRoundText.draw(self.screenSub)
                     self.livesText.draw(self.screenSub)
-                    self.PlayerName.draw(self.screenSub)
+                    self.playerName1.draw(self.screenSub)
                     self.check_input_player()
                 if currentTime - self.gameTimer > 3000:
                     self.restartGame(self.score)
@@ -151,11 +185,11 @@ class SpaceInvaders(Viewport):
                 self.play_main_music(currentTime)
                 self.screenSub.blit(self.background, (0, 0))
                 self.allBlockers.update(self.screenSub)
-                self.scoreNumber = Text(str(self.score), self.font, self.scoreText.size + 2, Color.GREEN1, self.scoreText.textWidth + 12, self.scoreText.yPos - 1)
+                self.scoreNumber = Text(str(self.score), self.font, self.scoreText.size + 2, Color.GREEN1, self.scoreText.widthPosX + 12, self.scoreText.yPos - 1)
                 self.scoreText.draw(self.screenSub)
                 self.scoreNumber.draw(self.screenSub)
                 self.livesText.draw(self.screenSub)
-                self.PlayerName.draw(self.screenSub)
+                self.playerName1.draw(self.screenSub)
                 self.check_input_player()
                 self.enemies.update(currentTime)
                 self.allSprites.update(self.keys, currentTime)
@@ -164,20 +198,20 @@ class SpaceInvaders(Viewport):
                 self.make_new_ship(self.makeNewShip, currentTime)
                 self.make_enemies_shoot()
 
-            self.playerGroup.update(self.enemies)
+            self.playerGroup.update(self.score, self.enemies, self.enemyBullets)
 
         # End Game
         elif self.gameOver:
             currentTime = time.get_ticks()
             self.groupEnemyPosition = self.Enemy_DEFAULT_POSITION   # Reset enemy starting position
-            self.create_game_over(currentTime)
+            self.create_end_game(currentTime)
 
     # Reset objects and variables to start a new game
     def restartGame(self, score: int):
         self.make_enemies()
         self.explosionsGroup = sprite.Group()
         self.bullets = sprite.Group()
-        self.mysteryShip = Mystery(self.displaySub, self.MISTERY, self.enemies, -100, self.scoreText.textHeight)
+        self.mysteryShip = Mystery(self.displaySub, self.MISTERY, self.enemies, -100, self.scoreText.heightPosY)
         self.mysteryGroup = sprite.Group(self.mysteryShip)
         self.enemyBullets = sprite.Group()
         self.allSprites = sprite.Group(self.enemies, self.mysteryShip, self.playerGroup.ships)
@@ -193,19 +227,95 @@ class SpaceInvaders(Viewport):
             player.shipAlive = True
 
     # Game over meny
-    def create_game_over(self, currentTime):
-        self.screenSub.blit(self.background, (0, 0))
-        passed = currentTime - self.timer
-        if passed < 750:
-            self.gameOverText.draw(self.screenSub)
-        elif 750 < passed < 1500:
+    def create_end_game(self, currentTime):
+        # Save database information
+        if self.modeGame == 1:
+            # Save video game
+            if self.saveGame:
+                self.save_score()
+        
+            # Show end game
+            self.show_end_game(currentTime, True)
+        else:
+            # Choose the end of each screen
+            if SpaceInvaders.gamesEnd == False:
+                SpaceInvaders.gamesEnd = True
+                self.gameWin = False
+            
+            # Save the winning game
+            if self.saveGame and self.gameWin:
+                self.save_score()
+
+            # Show end game
+            self.show_end_game(currentTime, self.gameWin)
+
+    # Save videogame
+    def save_score(self):
+        # Block the save's functionality
+        self.saveGame = False
+
+        # Get the time and day when ending the game
+        SpaceInvaders.gameEndTime = self.getDateTime()
+        
+        # Save information in the data base
+        db = GameData()
+        db.saveGame(SpaceInvaders.gameStartTime, SpaceInvaders.gameEndTime, self.difficulty, self.score, self.playerGroup.sprites())
+
+    # Show information about end of the game
+    def show_end_game(self, currentTime, option):
+        if option:
+            # Determine the best score
+            db = GameData()
+            countPlayers = len(self.playerGroup.sprites())
+            if countPlayers == 1:
+                player : Player = self.playerGroup.sprites()[0]
+                bestScore = db.scoreSinglePlayer(player.id, self.difficulty)
+            else:
+                player1 : Player = self.playerGroup.sprites()[0]
+                player2 : Player = self.playerGroup.sprites()[1]
+                bestScore = db.scoreMultiPlayer(player1.id, player2.id, self.difficulty)
+
+            # Check score's result 
+            bestScore = 0 if len(bestScore) == 0 else bestScore[0][2]
+
+            # Determine text's position
+            currentText = 'Current Score' if bestScore == 0 else 'New Best Score' if bestScore == self.score else 'Current Score'
+            currentHeight = self.displaySub.heightP(45) if bestScore == 0 else self.displaySub.heightP(35)
+            currentWidth1 = self.displaySub.widthP(50) if self.modeGame == 1 else self.displaySub.widthP(15)
+            currentWidth2 = self.displaySub.widthP(30) if self.modeGame == 1 else self.displaySub.widthP(15)
+            currentAlign = Align.CENTER if self.modeGame == 1 else Align.RIGHT
+           
+            # Create text
+            self.playerName3 = Text(self.playersText, self.font, self.textSize.scaleSize, Color.WHITE, currentWidth1, currentHeight, currentAlign)
+            self.currentScoreText = Text(currentText, self.font, self.textSize.scaleSize, Color.WHITE, currentWidth2, self.playerName3.heightPosY)                   
+            self.currentScoreNumber = Text(str(self.score), self.font, self.textSize.scaleSize, Color.WHITE, self.currentScoreText.widthPosX + 90, self.playerName3.heightPosY)                   
+
+            if bestScore != 0 and bestScore != self.score:
+                self.bestScoreText = Text('Best Score', self.font, self.textSize.scaleSize, Color.WHITE, currentWidth2, self.currentScoreNumber.heightPosY)                   
+                self.bestScoreNumber = Text(str(bestScore), self.font, self.textSize.scaleSize, Color.WHITE, self.currentScoreText.widthPosX + 90, self.currentScoreNumber.heightPosY)                   
+            
+            # Draw background
             self.screenSub.blit(self.background, (0, 0))
-        elif 1500 < passed < 2250:
-            self.gameOverText.draw(self.screenSub)
-        elif 2250 < passed < 2750:
+            
+            # Draw scores
+            self.playerName3.draw(self.screenSub)
+            self.currentScoreText.draw(self.screenSub)
+            self.currentScoreNumber.draw(self.screenSub)
+
+            if bestScore != 0 and bestScore != self.score:
+                self.bestScoreText.draw(self.screenSub)
+                self.bestScoreNumber.draw(self.screenSub)
+
+            # Show effect
+            passed = currentTime - self.timer
+            if passed > 3000:
+                SpaceInvaders.gameSound.stop()
+                self.eventBackspace({'Show_Message': False})
+                #self.mainScreen = True
+        else:
             self.screenSub.blit(self.background, (0, 0))
-        elif passed > 3000:
-            self.mainScreen = True
+            self.gameOverText.draw(self.screenSub)
+            self.playerName2.draw(self.screenSub)
 
     # Check the input handle the ship limits and movement
     def check_input_player(self):
@@ -347,7 +457,7 @@ class SpaceInvaders(Viewport):
             score = self.calculate_score(mystery.score)
             self.playerGroup.improveShoots(score)
             MysteryExplosion(self.displaySub, mystery, score, self.explosionsGroup)
-            mysteryShip = Mystery(self.displaySub, self.MISTERY, self.enemies, -100, self.scoreText.textHeight)
+            mysteryShip = Mystery(self.displaySub, self.MISTERY, self.enemies, -100, self.scoreText.heightPosY)
             self.allSprites.add(mysteryShip)
             self.mysteryGroup.add(mysteryShip)
 
@@ -395,7 +505,10 @@ class SpaceInvaders(Viewport):
         self.sounds = {}
         for sound_name in ['shoot1', 'shoot2', 'invaderkilled', 'mysterykilled','shipexplosion']:
             self.sounds[sound_name] = mixer.Sound(self.soundPath + '{}.wav'.format(sound_name))
-            self.sounds[sound_name].set_volume(0.2)
+            if self.difficulty:
+                self.sounds[sound_name].set_volume(0.2)
+            else:
+                self.sounds[sound_name].set_volume(0.45)
 
         self.musicNotes = [mixer.Sound(self.soundPath + '{}.wav'.format(i)) for i in range(4)]
         for sound in self.musicNotes:
@@ -414,3 +527,13 @@ class SpaceInvaders(Viewport):
 
             self.note.play()
             self.noteTimer += self.enemies.moveTime
+
+    # Get current date and time
+    def getDateTime(self):
+        # Get the current date and time
+        currentDateTime = datetime.datetime.now()
+
+        # Format the date and time
+        dateTime = currentDateTime.strftime("%Y-%m-%d %I:%M:%S %p")
+
+        return dateTime

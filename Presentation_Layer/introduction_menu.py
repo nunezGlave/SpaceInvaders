@@ -10,12 +10,17 @@ from Logical_Layer.Util.text import Text
 from Logical_Layer.Util.color import Color as color
 from Logical_Layer.Util.align import Align
 from Logical_Layer.Util.state import State
+from Data_Layer.default_data import DefaultData
 
 class IntroductionMenu(Viewport):
     def __init__(self):
         # Initialize super class
-        super().__init__("Space Invaders Menu")
+        super().__init__("Introduction Menu")
         
+        # Check database information
+        db = DefaultData()
+        db.createTables()
+
         # Load images an font
         images = self.loadSharedImages(['intro_menu'])
         self.font = self.getFont()

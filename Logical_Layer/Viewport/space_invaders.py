@@ -69,11 +69,11 @@ class SpaceInvaders():
 
         # Create menu's text that will be used on the screen
         self.titleText = Text('Doom Invaders', FONT, self.TextMenu.scaleSize, Color.WHITE, self.screen.halfWidth, self.screen.heightP(20), Align.CENTER)      
-        self.titleText2 = Text('Press any key to continue', FONT, self.titleText.size - 30, Color.WHITE, self.screen.halfWidth, self.titleText.textHeight, Align.CENTER)     
-        self.enemy1Text = Text('   =   10 pts', FONT, self.titleText2.size, Color.GREEN1, self.screen.halfWidth, self.titleText2.textHeight + 20)                 
-        self.enemy2Text = Text('   =  20 pts', FONT, self.enemy1Text.size, Color.BLUE1, self.enemy1Text.xPos , self.enemy1Text.textHeight + 20)                   
-        self.enemy3Text = Text('   =  30 pts', FONT, self.enemy2Text.size, Color.PURPLE1, self.enemy2Text.xPos , self.enemy2Text.textHeight + 20)                  
-        self.enemy4Text = Text('   =  ?????', FONT, self.enemy3Text.size, Color.RED1, self.enemy3Text.xPos ,self.enemy3Text.textHeight + 20)                      
+        self.titleText2 = Text('Press any key to continue', FONT, self.titleText.size - 30, Color.WHITE, self.screen.halfWidth, self.titleText.heightPosY, Align.CENTER)     
+        self.enemy1Text = Text('   =   10 pts', FONT, self.titleText2.size, Color.GREEN1, self.screen.halfWidth, self.titleText2.heightPosY + 20)                 
+        self.enemy2Text = Text('   =  20 pts', FONT, self.enemy1Text.size, Color.BLUE1, self.enemy1Text.xPos , self.enemy1Text.heightPosY + 20)                   
+        self.enemy3Text = Text('   =  30 pts', FONT, self.enemy2Text.size, Color.PURPLE1, self.enemy2Text.xPos , self.enemy2Text.heightPosY + 20)                  
+        self.enemy4Text = Text('   =  ?????', FONT, self.enemy3Text.size, Color.RED1, self.enemy3Text.xPos ,self.enemy3Text.heightPosY + 20)                      
         self.gameOverText = Text('Game Over', FONT, self.titleText.size, Color.WHITE, self.screen.widthP(50), self.screen.heightP(35), Align.CENTER)                   
         self.nextRoundText = Text('Next Round', FONT, self.gameOverText.size, Color.WHITE, self.screen.widthP(50), self.screen.heightP(35), Align.CENTER)    
 
@@ -89,7 +89,7 @@ class SpaceInvaders():
         self.livesText = Text('Lives ', FONT, self.scoreText.size, Color.WHITE, self.life3.posX - self.ScoreTextW - 10, 3)
 
         # Determine the initial position of the group of enemies
-        self.Enemy_DEFAULT_POSITION = self.scoreText.textHeight + 15
+        self.Enemy_DEFAULT_POSITION = self.scoreText.heightPosY + 15
         self.groupEnemyPosition = self.Enemy_DEFAULT_POSITION
 
         # Control of game states and selection of the type of player as well as its mobility
@@ -114,7 +114,7 @@ class SpaceInvaders():
         self.playerGroup = sprite.Group(self.player)
         self.explosionsGroup = sprite.Group()
         self.bullets = sprite.Group()
-        self.mysteryShip = Mystery(self.screen, self.MISTERY, self.enemies, -300 *self.gameSpeed, self.scoreText.textHeight)
+        self.mysteryShip = Mystery(self.screen, self.MISTERY, self.enemies, -300 *self.gameSpeed, self.scoreText.heightPosY)
         self.mysteryGroup = sprite.Group(self.mysteryShip)
         self.enemyBullets = sprite.Group()
         self.allSprites = sprite.Group(self.player, self.enemies, self.livesGroup, self.mysteryShip)
@@ -155,7 +155,7 @@ class SpaceInvaders():
                 currentTime = time.get_ticks()*self.gameSpeed
                 if currentTime - self.gameTimer < 3000:
                     self.screenSurface.blit(self.background, (0, 0))
-                    self.scoreNumber = Text(str(self.score), FONT, self.scoreText.size + 2, Color.GREEN1, self.scoreText.textWidth + 12, self.scoreText.yPos - 1)
+                    self.scoreNumber = Text(str(self.score), FONT, self.scoreText.size + 2, Color.GREEN1, self.scoreText.widthPosX + 12, self.scoreText.yPos - 1)
                     self.scoreText.draw(self.screenSurface)
                     self.scoreNumber.draw(self.screenSurface)
                     self.nextRoundText.draw(self.screenSurface)
@@ -172,7 +172,7 @@ class SpaceInvaders():
 
                 self.screenSurface.blit(self.background, (0, 0))
                 self.allBlockers.update(self.screenSurface)
-                self.scoreNumber = Text(str(self.score), FONT, self.scoreText.size + 2, Color.GREEN1, self.scoreText.textWidth + 12, self.scoreText.yPos - 1)
+                self.scoreNumber = Text(str(self.score), FONT, self.scoreText.size + 2, Color.GREEN1, self.scoreText.widthPosX + 12, self.scoreText.yPos - 1)
                 self.scoreText.draw(self.screenSurface)
                 self.scoreNumber.draw(self.screenSurface)
                 self.livesText.draw(self.screenSurface)
@@ -427,7 +427,7 @@ class SpaceInvaders():
             self.sounds['mysterykilled'].play()
             score = self.calculate_score(mystery.row)
             MysteryExplosion(self.screen, mystery, score, self.explosionsGroup)
-            mysteryShip = Mystery(self.screen, self.MISTERY, self.enemies, -300*self.gameSpeed, self.scoreText.textHeight)
+            mysteryShip = Mystery(self.screen, self.MISTERY, self.enemies, -300*self.gameSpeed, self.scoreText.heightPosY)
             self.allSprites.add(mysteryShip)
             self.mysteryGroup.add(mysteryShip)
 

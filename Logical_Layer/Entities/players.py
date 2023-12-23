@@ -103,11 +103,11 @@ class playersGroup(sprite.Group):
         return groupShip     
         
     # Update players
-    def update(self, enemies: sprite.Group):
+    def update(self, score: int, enemies: sprite.Group, enemyBullets: sprite.Group):
         # Update lives 
         self.lives.update()
 
         # Update players
         player : Player
         for player in self:
-            player.update(enemies)
+            player.update(score, enemies, enemyBullets)

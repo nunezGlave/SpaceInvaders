@@ -11,11 +11,12 @@ from Logical_Layer.Util.color import Color
 
 class Player(sprite.Sprite):
     # Parameterized Constructor
-    def __init__(self, gameScreen: Screen, playerName: str, typePlayer: int, imageShip: ImageScale, imageLaser: Surface, scoreLimit: int, coordinateX: int):
+    def __init__(self, gameScreen: Screen, playerInfo: dict, imageShip: ImageScale, imageLaser: Surface, scoreLimit: int, coordinateX: int):
         sprite.Sprite.__init__(self)
         self.screen  = gameScreen
-        self.name = playerName
-        self.type = typePlayer
+        self.id = playerInfo['id'] 
+        self.name = playerInfo['name'] 
+        self.type = playerInfo['typePlayer']
         self.imageShip = imageShip
         self.imageLaser = imageLaser
         self.scoreLimit = scoreLimit
@@ -101,8 +102,8 @@ class Player(sprite.Sprite):
             self.command_shoot = False
 
     # Update bullets and controller
-    def update(self, enemies: sprite.Group):
+    def update(self, score: int, enemies: sprite.Group, enemyBullets: sprite.Group):
         self.bullets.update()
-        self.controler.update(self.ship.rect.x, enemies, self.bullets)
+        self.controler.update(score, enemies, enemyBullets)
 
 

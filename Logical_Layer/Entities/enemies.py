@@ -85,6 +85,12 @@ class EnemiesGroup(sprite.Group):
             # Update timer
             self.timer += self.moveTime
 
+    def return_enemy(self):
+        enemy_list = []
+        for enemy in self:
+            enemy_list.append([enemy.rect.x, enemy.rect.y])
+        return enemy_list
+
     def add_internal(self, *sprites):
         super(EnemiesGroup, self).add_internal(*sprites)
         for s in sprites:

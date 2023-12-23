@@ -8,13 +8,13 @@ class Image():
         # Scale image and its dimension
         self.image = transform.scale(image, (int(width), int(width if height == 0 else height)))
         self.rect = self.image.get_rect()
-    
+        
         # Set screen
         self.screen = screen
 
         # Event controller
         self.clicked = False
-
+        
     # Flip image
     def flip(self, flipX: bool, flipY : bool):
         self.image = transform.flip(self.image, flipX, flipY)
@@ -52,13 +52,14 @@ class Image():
     def drawBox(self, textBox: str, fontBox: str, leftSide: Surface = None, rightSide: Surface = None, showLeftArrow : bool = True, showRightArrow : bool = True):
         if hasattr(self, 'innerCircle'):
            # Get text
-           self.name = textBox
+           self.id = textBox[0]
+           self.name = textBox[1]
 
            # Size of the outer and inner rectangle
-           outerWidth = self.rect.width * 1.2
-           outerHeight = self.rect.height * 0.5
+           outerWidth = self.rect.width * 1.7
+           outerHeight = self.rect.height * 0.54
            innerWidth = outerWidth * 0.9
-           innerHeight = outerHeight * 0.8
+           innerHeight = outerHeight * 0.78
            
            # Border radious
            borderRadious = 50
@@ -80,7 +81,7 @@ class Image():
            self.innerBox = draw.rect(self.screen, self.outerColor, self.innerRect, border_radius=borderRadious)
            
            # Resize text
-           self.text = self._resizeText(self.innerRect, fontBox, textBox, 0.9)
+           self.text = self._resizeText(self.outerRect, fontBox, self.name, 0.71)
            
            # Center text and draw it
            self.textRect = self.text.get_rect(center= self.innerBox.center)

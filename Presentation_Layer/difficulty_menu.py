@@ -7,10 +7,11 @@ sys.path.append(FULL_PATH)
 from pygame import *
 from Logical_Layer.Interfaces.viewport import Viewport
 from Logical_Layer.Util.text import Text
+from Logical_Layer.Util.image import Image
 from Logical_Layer.Util.color import Color as color
 from Logical_Layer.Util.button import Button
+from Logical_Layer.Util.align import Align
 from Logical_Layer.Util.state import State
-from Logical_Layer.Viewport.image_scale import ImageScale
 import pygame as py
 
 class DifficultyMenu(Viewport):
@@ -20,7 +21,7 @@ class DifficultyMenu(Viewport):
         self.gameDifficulty = True
 
         # List of images' names
-        uniqueImgs = ['button_inactive','button_active', 'difficulty_menu', 'frame', 'extra_button', 'logo']
+        uniqueImgs = ['button_inactive','button_active', 'difficulty_menu', 'frame', 'extra_button', 'title_difficulty']
         sharedImgs = ['backspace', 'enter']
        
         # Load imagenes and font
@@ -64,8 +65,10 @@ class DifficultyMenu(Viewport):
         sc = self.display
 
         # Create and display logo
-        logo = ImageScale(1, self.images['logo'], 520, 230)
-        logo.draw(self.screen, sc.widthP(5), sc.heightP(4))
+        logo = Image(self.screen, self.images['title_difficulty'], 580, 130)
+        logo.draw(sc.widthP(5), sc.heightP(10))
+        difficultyText = Text('Select Difficulty', self.font, 56, color.WHITE, logo.rect.centerx, logo.rect.y + 25, Align.CENTER)
+        difficultyText.draw(self.screen)
 
         # Create buttons
         btnEasy = Button(self.imgState1, 0.35, 'EASY', self.font)
@@ -80,8 +83,8 @@ class DifficultyMenu(Viewport):
         btnEnter.drawIcon(self.screen, self.imgEnter, btnBack.rect.right - 15, btnBack.rect.top)
 
         # Create and draw frame
-        self.frame = ImageScale(1, self.images['frame'], 450, 300)
-        self.frame.draw(self.screen, btnHard.rect.left, btnHard.rect.bottom + 20)
+        self.frame = Image(self.screen, self.images['frame'], 580, 350)
+        self.frame.draw(btnHard.rect.left, btnHard.rect.bottom + 20)
 
         # Create and display frame's information
         self.displayInfo(self.frame.rect.x + 40, self.frame.rect.y + 60)
@@ -92,6 +95,12 @@ class DifficultyMenu(Viewport):
 
         if btnHard.mouseClick():
             self.changeState(False)
+
+        # if btnBack.mouseClick():
+        #     self.eventBackspace()
+
+        # if btnEnter.mouseClick():
+        #     self.eventEnter()
 
     def changeState(self, state: bool):
         if state:
@@ -110,13 +119,13 @@ class DifficultyMenu(Viewport):
         self.gameDifficulty = state
 
     def displayInfo(self, xPos: int, yPos: int):
-        heightCoor = yPos
+        heightCoor = yPos + 5
         listText = [] 
         for index, line in enumerate(self.info):
-            listText.append(Text(line, self.font, 29, color.WHITE, xPos, heightCoor))  # Create text object
+            listText.append(Text(line, self.font, 35, color.WHITE, xPos + 15, heightCoor))  # Create text object
             text : Text = listText[index]                                              
             text.draw(self.screen)                                                     # Draw text object
-            heightCoor = text.textHeight + 15                                          # Set next line position
+            heightCoor = text.heightPosY + 20                                         # Set next line position
 
     def createInfoDict(self):
         # Information list
@@ -125,7 +134,7 @@ class DifficultyMenu(Viewport):
                     '- Number of enemies: {}',
                     '- Enemy speed: {}']
         # Changing parts
-        numbers = ['6', '3', '40', '15', '3', '2', '60', '20']
+        numbers = ['4', '3', '40', '15', '3', '2', '54', '20']
         countList = len(numbers) // 2
         
         # Dictionary and list temp
