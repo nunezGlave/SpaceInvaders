@@ -1,3 +1,7 @@
+import numpy as np
+import random
+import pygame
+ 
 class DQN:
     def __init__(self):
         self.playerControl = None
@@ -8,22 +12,20 @@ class DQN:
         self.keys = None
         self.score = 0
         self.q_table = {}
+        self.alpha = 0.01
+        self.gamma = 0.95
+        self.action_size = 2  
+        self.reward = 0
 
-        self.alpha = 0.1
-        self.gamma = 0.9
-
-        self.action_size = 2
-
-
-    def update(self, game_instance, score, player, enemies, bullets_xy, enemy_bullets_xy):
-        self.game_instance = game_instance
+    def update(self, playerControl, score, player, enemies, player_bullets_xy, enemy_bullets_xy):
+        self.playerControl = playerControl
         self.enemies = enemies.return_enemy()
         self.player = player.rect.x
         self.bullets = player_bullets_xy
         self.enemy_bullets = enemy_bullets_xy
         self.keys = pygame.key.get_pressed()
         self.score = score
-
+        
     def request_action(self):
         current_state = self.get_current_state()
 
@@ -54,11 +56,60 @@ class DQN:
         if random.random() < 0.5:
             self.send_command("shoot")
             self.send_command("left")
-            print("shoot left")
-        elif action == 1:
-            print("shoot right")
-            self.send_command("right")
+            #print("shoot left")
+        else:
             self.send_command("shoot")
+            self.send_command("right")
+            #print("shoot right")
+
+    def shoot_right_or_left(self):
+        if random.random() < 0.5:
+            self.send_command("shoot")
+            self.send_command("right")
+            #print("shoot right")
+        else:
+            self.send_command("shoot")
+            self.send_command("left")
+            #print("shoot left")
+
+    #def calculate_reward(self, current_state, action):
+    #   return self.reward
+
+    def calculate_reward(self, current_state, action):
+    # check if player bullet hits a wall
+        for bullet_x, bullet_y in self.bullets:
+            if bullet_y > 800 or bullet_y < 450:  # screen height 800 and collision with blockers
+                # penalize for hitting the roof, hitting blockers, and letting enemies getting close.
+                return self.reward - 1
+
+        return self.reward
+    
+    def should_avoid_enemy_bullets(self):
+        for bullet_x, bullet_y in self.enemy_bullets:
+            if abs(bullet_y - self.player) < 10:
+                return True
+        return False
+
+    def avoid_enemy_bullets_action(self):
+        left_bullets = [(bullet_x, bullet_y) for bullet_x,
+                        bullet_y in self.enemy_bullets if bullet_x < self.player]
+        right_bullets = [(bullet_x, bullet_y) for bullet_x,
+                         bullet_y in self.enemy_bullets if bullet_x > self.player]
+
+        if left_bullets:
+            left_dist = min([abs(bullet_x - self.player)
+                            for bullet_x, _ in left_bullets])
+        else:
+            left_dist = float('inf')
+
+        if right_bullets:
+            right_dist = min([abs(bullet_x - self.player)
+                             for bullet_x, _ in right_bullets])
+        else:
+            right_dist = float('inf')
+
+        if left_dist < right_dist:
+            return 0  # Move left
         else:
             return 1  # Move right
 
