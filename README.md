@@ -5,6 +5,9 @@ Taking inspiration from Space Invaders, this game's main objectives include craf
 To run the code, simply use the command "py main.py."
 If you want to generate the executable file, execute "build.bat" in the console.
 
+Note:
+All the files necessary to run the game are in the Game folder, which is generated through build.bat
+
 # Architecture
 ### player.py
 At the start of the game will create an instance of either 
