@@ -3,7 +3,7 @@
 setlocal
 
 REM Path of scripts and assets
-set SCRIPT_NAME=main.py
+set SCRIPT_NAME=space_invaders.py
 set ASSETS_FOLDER=Assets
 set DATA_FOLDER=Data
 

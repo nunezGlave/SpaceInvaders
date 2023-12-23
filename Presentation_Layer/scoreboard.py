@@ -117,7 +117,7 @@ class Scoreboard(Viewport):
                     # Create a score text according to the column and row
                     index = len(self.headers) // 2 + index if modeGame == 2 else index
                     scoreWidth = self.listHeaders[index].xPos + self.listHeaders[index].textWidth/2
-                    data = str(data).replace("Player-1", "PL1").replace("Player-2", "PL2").replace('IA-', '') if modeGame == 2 else str(data)
+                    data = str(data).replace("Player-1", "PL1").replace("Player-2", "PL2").replace('AI-', '') if modeGame == 2 else str(data)
                     infoScore = Text(data, self.font, 50, Color.WHITE, scoreWidth, scoreHeight, Align.CENTER)
                    
                     # Draw header and score text
